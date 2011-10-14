@@ -1,0 +1,24 @@
+#!/bin/sh
+
+FW32_ROOT="/usr/lib/fw32"
+FW32_CONFIG="/etc/fw32/pacman-g2.conf"
+
+error()
+{
+	/usr/bin/echo "$1"
+	exit 1
+}
+
+mount()
+{
+	grep -q "$FW32_ROOT/$1" /proc/mounts
+	[ $? -eq 0 ] && return
+	/bin/mount --bind "$1" "$FW32_ROOT/$1"
+	[ $? -ne 0 ] && error "Failed to mount $1."
+}
+
+pacman_g2()
+{
+	/usr/bin/linux32 /usr/bin/pacman-g2 --noconfirm --root "$FW32_ROOT" --config "$FW32_CONFIG" $@
+	[ $? -ne 0 ] && error "pacman-g2 failed to perform its action."
+}
