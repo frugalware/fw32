@@ -2,6 +2,20 @@
 
 FW32_ROOT="/usr/lib/fw32"
 FW32_CONFIG="/etc/fw32/pacman-g2.conf"
+FW32_DIRS=(
+	'/proc'
+	'/sys'
+	'/dev'
+	'/etc'
+	'/home'
+	'/tmp'
+	'/var/tmp'
+	'/var/cache/pacman-g2/pkg'
+	'/usr/share/kde'
+	'/usr/share/icons'
+	'/usr/share/fonts'
+	'/usr/share/themes'
+)
 
 error()
 {
@@ -11,10 +25,22 @@ error()
 
 mount()
 {
-	grep -q "$FW32_ROOT/$1" /proc/mounts
+	/usr/bin/grep -q "$FW32_ROOT/$1" /proc/mounts
 	[ $? -eq 0 ] && return
 	/bin/mount --bind "$1" "$FW32_ROOT/$1"
 	[ $? -ne 0 ] && error "Failed to mount $1."
+}
+
+umount()
+{
+	/bin/umount "$FW32_ROOT/$1"
+	[ $? -ne 0 ] && error "Failed to umount $1."
+}
+
+mkdir()
+{
+	/usr/bin/mkdir -p "$1"
+	[ $? -ne 0 ] && "Failed to create directory $1."
 }
 
 pacman_g2()
@@ -22,3 +48,12 @@ pacman_g2()
 	/usr/bin/linux32 /usr/bin/pacman-g2 --noconfirm --root "$FW32_ROOT" --config "$FW32_CONFIG" $@
 	[ $? -ne 0 ] && error "pacman-g2 failed to perform its action."
 }
+
+umount_all()
+{
+	for i in $(/usr/bin/grep -o -E "$FW32_ROOT/[a-zA-Z0-9_/]+" /proc/mounts); do
+		umount "$(/usr/bin/echo $i | /usr/bin/sed 's|^$FW32_ROOT||')"
+	done
+}
+
+[ $UID -ne 0 ] && [ $EUID -ne 0 ] && error "You must run this command as root."
