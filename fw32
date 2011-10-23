@@ -39,7 +39,7 @@ umount()
 
 mkdir()
 {
-	/usr/bin/mkdir -p "$1"
+	/usr/bin/mkdir -p "$FW32_ROOT/$1"
 	[ $? -ne 0 ] && "Failed to create directory $1."
 }
 
@@ -49,11 +49,29 @@ pacman_g2()
 	[ $? -ne 0 ] && error "pacman-g2 failed to perform its action."
 }
 
+mount_all()
+{
+	for i in ${FW32_DIRS[@]}; do
+		mount $i
+	done
+}
+
 umount_all()
 {
 	for i in $(/usr/bin/grep -o -E "$FW32_ROOT/[a-zA-Z0-9_/]+" /proc/mounts); do
 		umount "$(/usr/bin/echo $i | /usr/bin/sed 's|^$FW32_ROOT||')"
 	done
+}
+
+create()
+{
+	[ -d "$FW32_ROOT" ] && error "$FW32_ROOT appears to already exist."
+	for i in ${FW32_DIRS[@]}; do
+		mkdir $i
+	done
+	mount /var/cache/pacman-g2/pkg
+	pacman_g2 -Sy shadow coreutils findutils which wget file tar gzip bzip2 util-linux procps kbd psmisc less
+	umount /var/cache/pacman-g2/pkg
 }
 
 [ $UID -ne 0 ] && [ $EUID -ne 0 ] && error "You must run this command as root."
