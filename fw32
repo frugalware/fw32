@@ -76,8 +76,9 @@ create()
 		mkdir $i
 	done
 	mount /var/cache/pacman-g2/pkg
-	pacman_g2 -Sy shadow coreutils findutils which wget file tar gzip bzip2 util-linux procps kbd psmisc less
+	pacman_g2 -Sy shadow coreutils findutils which wget file tar gzip bzip2 util-linux procps kbd psmisc less pacman-g2
 	umount /var/cache/pacman-g2/pkg
+	mount_all
 }
 
 update()
@@ -87,7 +88,7 @@ update()
 	pacman_g2 -Syuf
 	umount /var/cache/pacman-g2/pkg
 	mount_all
-	run fc-cache --force --system-only
+	[ -x "$FW32_ROOT/usr/bin/fc-cache" ] && run /usr/bin/fc-cache --force --system-only
 }
 
 delete()
@@ -95,6 +96,30 @@ delete()
 	umount_all
 	rm -rf $FW32_ROOT
 	[ $? -ne 0 ] && error "Failed to delete $FW32_ROOT."
+}
+
+clean()
+{
+	mount_all
+	pacman_g2 -Sc
+}
+
+install()
+{
+	umount_all
+	mount /var/cache/pacman-g2/pkg
+	pacman_g2 -Syf $@
+	umount /var/cache/pacman-g2/pkg
+	mount_all
+}
+
+uninstall()
+{
+	umount_all
+	mount /var/cache/pacman-g2/pkg
+	pacman_g2 -Rs $@
+	umount /var/cache/pacman-g2/pkg
+	mount_all
 }
 
 [ $UID -ne 0 ] && [ $EUID -ne 0 ] && error "You must run this command as root."
