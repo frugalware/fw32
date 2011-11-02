@@ -7,7 +7,25 @@
 #include <limits.h>
 #include <assert.h>
 
-#define FW32_ROOT "/usr/lib/fw32"
+static const char *FW32_ROOT = "/usr/lib/fw32";
+
+static const char *FW32_DIRS[] =
+{
+  "/proc",
+  "/sys",
+  "/dev",
+  "/etc",
+  "/home",
+  "/tmp",
+  "/var/tmp",
+  "/var/cache/pacman-g2/pkg",
+  "/usr/share/kde",
+  "/usr/share/icons",
+  "/usr/share/fonts",
+  "/usr/share/themes",
+  "/media",
+  "/mnt"
+};
 
 static void
 error(const char *fmt,...)
