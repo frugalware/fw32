@@ -33,26 +33,20 @@ mkdir_parents(const char *s)
 
   snprintf(path,sizeof path,"%s",s);
 
-  for( p = strchr(path + 1,'/') ; p && *p ; p = strchr(p + 1,'/') )
+  for( p = strchr(path + 1,'/') ; p && *p ; *p = '/', p = strchr(p + 1,'/') )
   {
     *p = 0;
 
     if(!stat(path,&st))
     {
       if(S_ISDIR(st.st_mode))
-      {
-        *p = '/';
-
         continue;
-      }
 
       error("Parent directory exists and is not a directory: %s\n",path);
     }
 
     if(mkdir(path,0755))
       error("Failed to create parent directory: %s\n",path);
-
-    *p = '/';
   }
 
   if(!stat(path,&st))
@@ -66,3 +60,5 @@ mkdir_parents(const char *s)
   if(mkdir(path,0755))
     error("Failed to create directory: %s\n",path);
 }
+
+int main(int argc,char **argv) { mkdir_parents(argv[1]); }
