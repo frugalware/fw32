@@ -5,9 +5,12 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <limits.h>
+#include <errno.h>
 #include <assert.h>
 
 static const char *FW32_ROOT = "/usr/lib/fw32";
+
+static const char *FW32_CONFIG = "/etc/fw32/pacman-g2.conf";
 
 static const char *FW32_DIRS[] =
 {
@@ -47,7 +50,6 @@ static void
 mkdir_parents(const char *s)
 {
   char path[PATH_MAX], *p;
-  struct stat st;
 
   assert(s && *s == '/');
 
@@ -57,28 +59,20 @@ mkdir_parents(const char *s)
   {
     *p = 0;
 
-    if(!stat(path,&st))
-    {
-      if(S_ISDIR(st.st_mode))
-        continue;
+    errno = 0;
 
-      error("Parent directory exists and is not a directory: %s\n",path);
-    }
+    mkdir(path,0755);
 
-    if(mkdir(path,0755))
-      error("Failed to create parent directory: %s\n",path);
+    if(errno && errno != EEXIST)
+        error("Failed to create parent directory: %s: %s\n",path,strerror(errno));
   }
 
-  if(!stat(path,&st))
-  {
-    if(S_ISDIR(st.st_mode))
-      return;
+  errno = 0;
 
-    error("Directory exists and is not a directory: %s\n",path);
-  }
+  mkdir(path,0755);
 
-  if(mkdir(path,0755))
-    error("Failed to create directory: %s\n",path);
+  if(errno && errno != EEXIST)
+    error("Failed to create directory: %s: %s\n",path,strerror(errno));
 }
 
 static bool
