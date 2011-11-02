@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <assert.h>
 
+#define FW32_ROOT "/usr/lib/fw32"
+
 static void
 error(const char *fmt,...)
 {
@@ -59,6 +61,49 @@ mkdir_parents(const char *s)
 
   if(mkdir(path,0755))
     error("Failed to create directory: %s\n",path);
+}
+
+static bool
+is_mounted(const char *path)
+{
+  FILE *f;
+  char line[LINE_MAX], *s, *e;
+  bool found;
+
+  assert(path);
+
+  f = fopen("/proc/mounts","rb");
+
+  if(!f)
+    error("Cannot open /proc/mounts for reading.\n");
+
+  found = false;
+
+  while(fgets(line,sizeof line,f))
+  {
+    s = strchr(line,' ');
+
+    if(!s)
+      continue;
+
+    e = strchr(++s,' ');
+
+    if(!e)
+      continue;
+
+    *e = 0;
+
+    if(strcmp(s,path))
+    {
+      found = true;
+
+      break;
+    }
+  }
+
+  fclose(f);
+
+  return found;
 }
 
 int main(int argc,char **argv) { mkdir_parents(argv[1]); }
