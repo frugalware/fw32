@@ -341,6 +341,18 @@ fw32_install(char **args1)
 }
 
 static void
+fw32_remove(char **args1)
+{
+  char *args2[] =
+  {
+    "-Rsc",
+    0
+  };
+
+  pacman_g2(args_merge(0,args2,args1));
+}
+
+static void
 fw32_mount_all(void)
 {
   mount_all();
@@ -376,6 +388,8 @@ main(int argc,char **argv)
     fw32_create();
   else if(!strcmp(cmd,"fw32-install"))
     fw32_install(args);
+  else if(!strcmp(cmd,"fw32-remove"))
+    fw32_remove(args);
   else if(!strcmp(cmd,"fw32-clean"))
     fw32_clean();
   else if(!strcmp(cmd,"fw32-mount-all"))
