@@ -12,6 +12,7 @@ install: all
 	chmod +s $(DESTDIR)/usr/bin/fw32
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-create
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-delete
+	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-run
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-upgrade
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-install
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-remove
