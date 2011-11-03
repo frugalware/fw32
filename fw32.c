@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
@@ -76,7 +77,7 @@ mkdir_parents(const char *s)
 }
 
 static bool
-is_mounted(const char *path)
+ismounted(const char *path)
 {
   FILE *f;
   char line[LINE_MAX], *s, *e;
@@ -117,5 +118,22 @@ is_mounted(const char *path)
 
   return found;
 }
+
+static void
+mount_directory(const char *src)
+{
+  char dst[PATH_MAX];
+
+  assert(src);
+  
+  snprintf(dst,sizeof dst,"%s%s",FW32_ROOT,src);
+
+  if(ismounted(dst))
+    return;
+  
+  if(mount(src,dst,"",MS_BIND,""))
+    error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
+}
+
 
 int main(int argc,char **argv) { mkdir_parents(argv[1]); }
