@@ -127,5 +127,13 @@ mount_directory(const char *src)
     error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 }
 
+static void
+umount_directory(const char *path)
+{
+  assert(path);
 
-int main(int argc,char **argv) { mkdir_parents(argv[1]); }
+  if(umount2(path,UMOUNT_NOFOLLOW) && errno != EINVAL)
+    error("Failed to umount directory: %s: %s\n",path,strerror(errno));
+}
+
+int main(int argc,char **argv) { umount_directory(argv[1]); }
