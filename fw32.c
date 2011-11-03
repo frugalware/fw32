@@ -191,8 +191,22 @@ ismounted(const char *path)
 static void
 run(const char *cmd,const char *dir,bool drop,char **args)
 {
+  char path[PATH_MAX];
+  struct stat st;
   pid_t id;
   int status;
+
+  assert(cmd && dir && args);
+
+  snprintf(path,sizeof path,"%s%s",FW32_ROOT,cmd);
+
+  if(stat(path,&st))
+    return;
+
+  snprintf(path,sizeof path,"%s%s",FW32_ROOT,dir);
+
+  if(stat(path,&st))
+    error("%s does not exist. Cannot execute command.\n",path);
 
   id = fork();
 
@@ -359,6 +373,27 @@ fw32_create(void)
 }
 
 static void
+fw32_upgrade(void)
+{
+  char *args1[] =
+  {
+    "-Syuf",
+    0
+  };
+  char *args2[] =
+  {
+    "/usr/bin/fc-cache",
+    "--force",
+    "--system-only",
+    0
+  };
+
+  pacman_g2(args1);
+
+  run("/usr/bin/fc-cache","/",false,args2);
+}
+
+static void
 fw32_clean(void)
 {
   char *args[] =
@@ -428,6 +463,8 @@ main(int argc,char **argv)
 
   if(!strcmp(cmd,"fw32-create"))
     fw32_create();
+  else if(!strcmp(cmd,"fw32-upgrade"))
+    fw32_upgrade();
   else if(!strcmp(cmd,"fw32-install"))
     fw32_install(args);
   else if(!strcmp(cmd,"fw32-remove"))
