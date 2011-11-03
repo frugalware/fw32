@@ -323,6 +323,18 @@ fw32_create(void)
   mount_all();
 }
 
+static void
+fw32_mount_all(void)
+{
+  mount_all();
+}
+
+static void
+fw32_umount_all(void)
+{
+  umount_all();
+}
+
 extern int
 main(int argc,char **argv)
 {
@@ -345,6 +357,10 @@ main(int argc,char **argv)
 
   if(!strcmp(cmd,"fw32-create"))
     fw32_create();
+  else if(!strcmp(cmd,"fw32-mount-all"))
+    fw32_mount_all();
+  else if(!strcmp(cmd,"fw32-umount-all"))
+    fw32_umount_all();
 
   return EXIT_SUCCESS;
 }
