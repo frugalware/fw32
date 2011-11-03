@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <assert.h>
+#include <pwd.h>
 
 static const char *FW32_ROOT = "/usr/lib/fw32";
 
@@ -229,7 +230,10 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
       if(setuid(getuid()) || seteuid(getuid()))
         error("Failed to drop root privileges.\n");
 
-    execv(cmd,args_merge(0,args2,args1));
+    if(*cmd == '/')
+      execv(cmd,args_merge(0,args2,args1));
+    else
+      execvp(cmd,args_merge(0,args2,args1));
 
     _exit(EXIT_FAILURE);
   }
@@ -475,10 +479,13 @@ extern int
 main(int argc,char **argv)
 {
   char *cmd, **args;
+  int i;
 
   cmd = argv[0];
 
   args = argv + 1;
+
+  i = argc - 1;
 
   if(!strcmp(cmd,"fw32-run"))
   {
@@ -495,6 +502,8 @@ main(int argc,char **argv)
     fw32_create();
   else if(!strcmp(cmd,"fw32-delete"))
     fw32_delete();
+  else if(!strcmp(cmd,"fw32-run"))
+    fw32_run(i,args);
   else if(!strcmp(cmd,"fw32-upgrade"))
     fw32_upgrade();
   else if(!strcmp(cmd,"fw32-install"))
