@@ -209,32 +209,6 @@ umount_directory(const char *path)
 }
 
 static void
-pacman_g2(char **args1)
-{
-  pid_t id;
-  int status;
-
-  id = fork();
-
-  if(!id)
-  {
-    char *args2[] = { "--noconfirm", "--root", FW32_ROOT, "--config", FW32_CONFIG, 0 };
-
-    execv("/usr/bin/pacman-g2",args_merge("/usr/bin/pacman-g2",args2,args1));
-
-    _exit(EXIT_FAILURE);
-  }
-  else if(id == -1)
-    error("fork: %s\n",strerror(errno));
-
-  if(waitpid(id,&status,0) == -1)
-    error("waitpid: %s\n",strerror(errno));
-
-  if(!WIFEXITED(status) || WEXITSTATUS(status))
-    error("pacman-g2 failed to complete its operation.\n");
-}
-
-static void
 mount_all(void)
 {
   const char **p;
@@ -259,6 +233,40 @@ umount_all(void)
 
     umount_directory(path);
   }
+}
+
+static void
+pacman_g2(char **args1)
+{
+  pid_t id;
+  int status;
+
+  umount_all();
+
+  mount_directory("/var/cache/pacman-g2/pkg");
+
+  id = fork();
+
+  if(!id)
+  {
+    char *args2[] = { "--noconfirm", "--root", FW32_ROOT, "--config", FW32_CONFIG, 0 };
+
+    execv("/usr/bin/pacman-g2",args_merge("/usr/bin/pacman-g2",args2,args1));
+
+    _exit(EXIT_FAILURE);
+  }
+  else if(id == -1)
+    error("fork: %s\n",strerror(errno));
+
+  if(waitpid(id,&status,0) == -1)
+    error("waitpid: %s\n",strerror(errno));
+
+  if(!WIFEXITED(status) || WEXITSTATUS(status))
+    error("pacman-g2 failed to complete its operation.\n");
+
+  umount_directory("/var/cache/pacman-g2/pkg");
+
+  mount_all();
 }
 
 static void
@@ -300,13 +308,7 @@ fw32_create(void)
     mkdir_parents(path);
   }
 
-  mount_directory("/var/cache/pacman-g2/pkg");
-
   pacman_g2(args);
-
-  umount_directory("/var/cache/pacman-g2/pkg");
-
-  mount_all();
 }
 
 static void
