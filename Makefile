@@ -6,8 +6,10 @@ DESTDIR ?= /
 all: fw32
 
 install: all
-	mkdir -p $(DESTDIR)/usr/bin
+	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/etc/fw32 $(DESTDIR)/lib/systemd/system
 	cp fw32 $(DESTDIR)/usr/bin
+	cp pacman-g2.conf $(DESTDIR)/etc/fw32
+	cp fw32.service $(DESTDIR)/lib/systemd/system
 	chown root:root $(DESTDIR)/usr/bin/fw32
 	chmod +s $(DESTDIR)/usr/bin/fw32
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-create
