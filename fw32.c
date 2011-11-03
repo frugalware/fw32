@@ -100,13 +100,18 @@ args_merge(char *name,char **args1,char **args2)
   size_t i;
   char **args3;
 
-  assert(name && args1 && args2);
-
-  args3 = xmalloc((1 + args_len(args1) + args_len(args2) + 1) * sizeof(char *));
+  assert(args1 && args2);
 
   i = 0;
 
-  args3[i++] = name;
+  if(name)
+  {
+    args3 = xmalloc((1 + args_len(args1) + args_len(args2) + 1) * sizeof(char *));
+
+    args3[i++] = name;
+  }
+  else
+    args3 = xmalloc((args_len(args1) + args_len(args2) + 1) * sizeof(char *));
 
   while(*args1)
     args3[i++] = *args1++;
@@ -324,6 +329,18 @@ fw32_clean(void)
 }
 
 static void
+fw32_install(char **args1)
+{
+  char *args2[] =
+  {
+    "-Syf",
+    0
+  };
+
+  pacman_g2(args_merge(0,args2,args1));
+}
+
+static void
 fw32_mount_all(void)
 {
   mount_all();
@@ -357,6 +374,8 @@ main(int argc,char **argv)
 
   if(!strcmp(cmd,"fw32-create"))
     fw32_create();
+  else if(!strcmp(cmd,"fw32-install"))
+    fw32_install(args);
   else if(!strcmp(cmd,"fw32-clean"))
     fw32_clean();
   else if(!strcmp(cmd,"fw32-mount-all"))
