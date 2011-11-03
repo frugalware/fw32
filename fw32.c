@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <sys/mount.h>
 #include <sys/wait.h>
+#include <sys/personality.h>
 #include <limits.h>
 #include <errno.h>
 #include <unistd.h>
@@ -274,4 +275,59 @@ umount_all(void)
   fclose(f);
 }
 
-int main(int argc,char **argv) { printf("%d\n",sizeof(FW32_ROOT)); }
+static void
+fw32_create(void)
+{
+  struct stat st;
+  const char **p;
+  char path[PATH_MAX];
+  char *args[] =
+  {
+    "-Sy",
+    "shadow",
+    "coreutils",
+    "findutils",
+    "which",
+    "wget",
+    "file",
+    "tar",
+    "gzip",
+    "bzip2",
+    "util-linux",
+    "procps",
+    "kbd",
+    "psmisc",
+    "less",
+    "pacman-g2",
+    0
+  };
+
+  if(!stat(FW32_ROOT,&st))
+    error("%s appears to already exist.\n",FW32_ROOT);
+
+  p = FW32_DIRS;
+
+  while(*p)
+  {
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,*p++);
+
+    mkdir_parents(path);
+  }
+
+  mount_directory("/var/cache/pacman-g2/pkg");
+
+  pacman_g2(args);
+
+  umount_directory("/var/cache/pacman-g2/pkg");
+
+  mount_all();
+}
+
+extern int
+main(int argc,char **argv)
+{
+  personality(PER_LINUX32);
+  fw32_create();
+
+  return EXIT_SUCCESS;
+}
