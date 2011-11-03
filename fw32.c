@@ -189,6 +189,40 @@ ismounted(const char *path)
 }
 
 static void
+run(const char *cmd,const char *dir,bool drop,char **args)
+{
+  pid_t id;
+  int status;
+
+  id = fork();
+
+  if(!id)
+  {
+    if(chroot(FW32_ROOT))
+      error("Failed to enter chroot %s.",FW32_ROOT);
+
+    if(chdir(dir))
+      error("Failed to chdir to %s.\n",dir);
+
+    if(drop)
+      if(setuid(getuid()) || seteuid(getuid()))
+        error("Failed to drop root privileges.\n");
+
+    execv(cmd,args);
+
+    _exit(EXIT_FAILURE);
+  }
+  else if(id == -1)
+    error("fork: %s\n",strerror(errno));
+
+  if(waitpid(id,&status,0) == -1)
+    error("waitpid: %s\n",strerror(errno));
+
+  if(!WIFEXITED(status) || WEXITSTATUS(status))
+    error("%s failed to complete its operation.\n",cmd);
+}
+
+static void
 mount_directory(const char *src)
 {
   char dst[PATH_MAX];
@@ -254,7 +288,15 @@ pacman_g2(char **args1)
 
   if(!id)
   {
-    char *args2[] = { "--noconfirm", "--root", FW32_ROOT, "--config", FW32_CONFIG, 0 };
+    char *args2[] =
+    {
+      "--noconfirm",
+      "--root",
+      FW32_ROOT,
+      "--config",
+      FW32_CONFIG,
+      0
+    };
 
     execv("/usr/bin/pacman-g2",args_merge("/usr/bin/pacman-g2",args2,args1));
 
