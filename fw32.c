@@ -239,40 +239,26 @@ mount_all(void)
 {
   const char **p;
 
-  for( p = FW32_DIRS ; *p ; ++p )
-    mount_directory(*p);
+  p = FW32_DIRS;
+
+  while(*p)
+    mount_directory(*p++);
 }
 
 static void
 umount_all(void)
 {
-  FILE *f;
-  char line[LINE_MAX], *s, *e;
+  const char **p;
+  char path[PATH_MAX];
 
-  f = fopen("/proc/mounts","rb");
+  p = FW32_DIRS;
 
-  if(!f)
-    error("Cannot open /proc/mounts for reading.\n");
-
-  while(fgets(line,sizeof line,f))
+  while(*p)
   {
-    s = strchr(line,' ');
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,*p++);
 
-    if(!s)
-      continue;
-
-    e = strchr(++s,' ');
-
-    if(!e)
-      continue;
-
-    *e = 0;
-
-    if(!strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
-      umount_directory(s);
+    umount_directory(path);
   }
-
-  fclose(f);
 }
 
 static void
