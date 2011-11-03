@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <sys/personality.h>
 #include <limits.h>
+#include <ftw.h>
 #include <errno.h>
 #include <unistd.h>
 #include <assert.h>
@@ -336,6 +337,15 @@ pacman_g2(char **args1)
   mount_all();
 }
 
+static int
+nftw_cb(const char *path,const struct stat *st,int type,struct FTW *buf)
+{
+  if(remove(path))
+    return 1;
+
+  return 0;
+}
+
 static void
 fw32_create(void)
 {
@@ -376,6 +386,21 @@ fw32_create(void)
   }
 
   pacman_g2(args);
+}
+
+static void
+fw32_delete(void)
+{
+  int rv;
+
+  umount_all();
+
+  rv = nftw(FW32_ROOT,nftw_cb,16,FTW_DEPTH | FTW_PHYS);
+
+  if(rv == -1)
+    error("nftw: %s\n",strerror(errno));
+  else if(rv == 1)
+    error("Failed to remove a file while deleting.\n");
 }
 
 static void
@@ -468,6 +493,8 @@ main(int argc,char **argv)
 
   if(!strcmp(cmd,"fw32-create"))
     fw32_create();
+  else if(!strcmp(cmd,"fw32-delete"))
+    fw32_delete();
   else if(!strcmp(cmd,"fw32-upgrade"))
     fw32_upgrade();
   else if(!strcmp(cmd,"fw32-install"))
