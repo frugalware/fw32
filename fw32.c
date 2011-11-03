@@ -170,7 +170,7 @@ ismounted(const char *path)
 
     *e = 0;
 
-    if(strcmp(s,path))
+    if(!strcmp(s,path))
     {
       found = true;
 
@@ -268,7 +268,7 @@ umount_all(void)
 
     *e = 0;
 
-    if(strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
+    if(!strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
       umount_directory(s);
   }
 
@@ -327,7 +327,7 @@ extern int
 main(int argc,char **argv)
 {
   personality(PER_LINUX32);
-  fw32_create();
+
 
   return EXIT_SUCCESS;
 }
