@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/wait.h>
 #include <limits.h>
 #include <errno.h>
 #include <unistd.h>
@@ -204,6 +205,32 @@ umount_directory(const char *path)
 
   if(umount2(path,UMOUNT_NOFOLLOW) && errno != EINVAL)
     error("Failed to umount directory: %s: %s\n",path,strerror(errno));
+}
+
+static void
+pacman_g2(char **args1)
+{
+  pid_t id;
+  int status;
+
+  id = fork();
+
+  if(!id)
+  {
+    char *args2[] = { "--noconfirm", "--root", FW32_ROOT, "--config", FW32_CONFIG, 0 };
+
+    execv("/usr/bin/pacman-g2",args_merge("/usr/bin/pacman-g2",args2,args1));
+
+    _exit(EXIT_FAILURE);
+  }
+  else if(id == -1)
+    error("fork: %s\n",strerror(errno));
+
+  if(waitpid(id,&status,0) == -1)
+    error("waitpid: %s\n",strerror(errno));
+
+  if(!WIFEXITED(status) || WEXITSTATUS(status))
+    error("pacman-g2 failed to complete its operation.\n");
 }
 
 static void
