@@ -64,6 +64,7 @@ xmalloc(size_t n)
   return p;
 }
 
+#if 0
 static char *
 xstrdup(const char *s)
 {
@@ -75,6 +76,45 @@ xstrdup(const char *s)
     error("strdup: %s\n",strerror(errno));
 
   return p;
+}
+#endif
+
+static size_t
+args_len(char **args)
+{
+  size_t n;
+
+  assert(args);
+
+  for( n = 0 ; *args ; ++n, ++args )
+    ;
+
+  return n;
+}
+
+static char **
+args_merge(char *name,char **args1,char **args2)
+{
+  size_t i;
+  char **args3;
+
+  assert(name && args1 && args2);
+
+  args3 = xmalloc((1 + args_len(args1) + args_len(args2) + 1) * sizeof(char *));
+
+  i = 0;
+
+  args3[i++] = name;
+
+  while(*args1)
+    args3[i++] = *args1++;
+
+  while(*args2)
+    args3[i++] = *args2++;
+
+  args3[i] = 0;
+
+  return args3;
 }
 
 static void
