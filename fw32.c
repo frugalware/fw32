@@ -200,11 +200,6 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
 
   assert(cmd && dir && args1);
 
-  snprintf(path,sizeof path,"%s%s",FW32_ROOT,cmd);
-
-  if(stat(path,&st))
-    return;
-
   snprintf(path,sizeof path,"%s%s",FW32_ROOT,dir);
 
   if(stat(path,&st))
@@ -230,12 +225,9 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
       if(setuid(getuid()) || seteuid(getuid()))
         error("Failed to drop root privileges.\n");
 
-    if(*cmd == '/')
-      execv(cmd,args_merge(0,args2,args1));
-    else
-      execvp(cmd,args_merge(0,args2,args1));
+    execvp(cmd,args_merge(0,args2,args1));
 
-    _exit(EXIT_FAILURE);
+    _exit(errno);
   }
   else if(id == -1)
     error("fork: %s\n",strerror(errno));
@@ -243,7 +235,7 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
   if(waitpid(id,&status,0) == -1)
     error("waitpid: %s\n",strerror(errno));
 
-  if(!WIFEXITED(status) || WEXITSTATUS(status))
+  if(!WIFEXITED(status) || (WEXITSTATUS(status) && WEXITSTATUS(status) != ENOENT))
     error("%s failed to complete its operation.\n",cmd);
 }
 
@@ -425,6 +417,31 @@ fw32_upgrade(void)
   pacman_g2(args1);
 
   run("/usr/bin/fc-cache","/",false,args2);
+}
+
+static void
+fw32_run(int i,char **args1)
+{
+  char cwd[PATH_MAX];
+  struct passwd *pwd;
+  char *args2[] =
+  {
+    "-l",
+    0
+  };
+
+  if(!getcwd(cwd,sizeof cwd))
+    error("getcwd: %s\n",strerror(errno));
+
+  pwd = getpwuid(getuid());
+
+  if(!pwd)
+    error("Failed to retrieve password entry.\n");
+
+  if(i < 1)
+    run(pwd->pw_shell,cwd,true,args2);
+  else
+    run(args1[0],cwd,true,args1+1);
 }
 
 static void
