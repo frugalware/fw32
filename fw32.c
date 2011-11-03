@@ -326,8 +326,25 @@ fw32_create(void)
 extern int
 main(int argc,char **argv)
 {
-  personality(PER_LINUX32);
+  char *cmd, **args;
 
+  cmd = argv[0];
+
+  args = argv + 1;
+
+  if(!strcmp(cmd,"fw32-run"))
+  {
+    if(!getuid() || geteuid())
+      error("This must be run as non-root, be SETUID, and owned by root.\n");
+  }
+  else if(getuid() || geteuid())
+    error("This must be run as root.\n");
+
+  if(personality(PER_LINUX32))
+    error("Failed to enable 32 bit emulation.\n");
+
+  if(!strcmp(cmd,"fw32-create"))
+    fw32_create();
 
   return EXIT_SUCCESS;
 }
