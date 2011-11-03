@@ -312,6 +312,18 @@ fw32_create(void)
 }
 
 static void
+fw32_clean(void)
+{
+  char *args[] =
+  {
+    "-Sc",
+    0
+  };
+
+  pacman_g2(args);
+}
+
+static void
 fw32_mount_all(void)
 {
   mount_all();
@@ -345,6 +357,8 @@ main(int argc,char **argv)
 
   if(!strcmp(cmd,"fw32-create"))
     fw32_create();
+  else if(!strcmp(cmd,"fw32-clean"))
+    fw32_clean();
   else if(!strcmp(cmd,"fw32-mount-all"))
     fw32_mount_all();
   else if(!strcmp(cmd,"fw32-umount-all"))
