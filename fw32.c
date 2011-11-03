@@ -7,6 +7,7 @@
 #include <sys/mount.h>
 #include <limits.h>
 #include <errno.h>
+#include <unistd.h>
 #include <assert.h>
 
 static const char *FW32_ROOT = "/usr/lib/fw32";
@@ -46,6 +47,34 @@ error(const char *fmt,...)
   va_end(args);
 
   exit(EXIT_FAILURE);
+}
+
+static void *
+xmalloc(size_t n)
+{
+  void *p;
+
+  assert(n);
+
+  p = malloc(n);
+
+  if(!p)
+    error("malloc: %s\n",strerror(errno));
+
+  return p;
+}
+
+static char *
+xstrdup(const char *s)
+{
+  char *p;
+
+  p = strdup(s);
+
+  if(!p)
+    error("strdup: %s\n",strerror(errno));
+
+  return p;
 }
 
 static void
@@ -118,12 +147,12 @@ mount_directory(const char *src)
   char dst[PATH_MAX];
 
   assert(src);
-  
+
   snprintf(dst,sizeof dst,"%s%s",FW32_ROOT,src);
 
   if(ismounted(dst))
     return;
-  
+
   if(mount(src,dst,"",MS_BIND,""))
     error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 }
@@ -151,7 +180,7 @@ umount_all(void)
 {
   FILE *f;
   char line[LINE_MAX], *s, *e;
-  
+
   f = fopen("/proc/mounts","rb");
 
   if(!f)
@@ -174,7 +203,7 @@ umount_all(void)
     if(strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
       umount_directory(s);
   }
-  
+
   fclose(f);
 }
 
