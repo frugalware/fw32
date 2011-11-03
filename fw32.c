@@ -146,4 +146,36 @@ mount_all(void)
     mount_directory(*p);
 }
 
-int main(int argc,char **argv) { umount_directory(argv[1]); }
+static void
+umount_all(void)
+{
+  FILE *f;
+  char line[LINE_MAX], *s, *e;
+  
+  f = fopen("/proc/mounts","rb");
+
+  if(!f)
+    error("Cannot open /proc/mounts for reading.\n");
+
+  while(fgets(line,sizeof line,f))
+  {
+    s = strchr(line,' ');
+
+    if(!s)
+      continue;
+
+    e = strchr(++s,' ');
+
+    if(!e)
+      continue;
+
+    *e = 0;
+
+    if(strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
+      umount_directory(s);
+  }
+  
+  fclose(f);
+}
+
+int main(int argc,char **argv) { printf("%d\n",sizeof(FW32_ROOT)); }
