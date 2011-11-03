@@ -60,19 +60,11 @@ mkdir_parents(const char *s)
   {
     *p = 0;
 
-    errno = 0;
-
-    mkdir(path,0755);
-
-    if(errno && errno != EEXIST)
+    if(mkdir(path,0755) && errno != EEXIST)
         error("Failed to create parent directory: %s: %s\n",path,strerror(errno));
   }
 
-  errno = 0;
-
-  mkdir(path,0755);
-
-  if(errno && errno != EEXIST)
+  if(mkdir(path,0755) && errno != EEXIST)
     error("Failed to create directory: %s: %s\n",path,strerror(errno));
 }
 
