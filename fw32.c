@@ -189,14 +189,14 @@ ismounted(const char *path)
 }
 
 static void
-run(const char *cmd,const char *dir,bool drop,char **args)
+run(const char *cmd,const char *dir,bool drop,char **args1)
 {
   char path[PATH_MAX];
   struct stat st;
   pid_t id;
   int status;
 
-  assert(cmd && dir && args);
+  assert(cmd && dir && args1);
 
   snprintf(path,sizeof path,"%s%s",FW32_ROOT,cmd);
 
@@ -212,6 +212,12 @@ run(const char *cmd,const char *dir,bool drop,char **args)
 
   if(!id)
   {
+    char *args2[] =
+    {
+      cmd,
+      0
+    };
+
     if(chroot(FW32_ROOT))
       error("Failed to enter chroot %s.",FW32_ROOT);
 
@@ -222,7 +228,7 @@ run(const char *cmd,const char *dir,bool drop,char **args)
       if(setuid(getuid()) || seteuid(getuid()))
         error("Failed to drop root privileges.\n");
 
-    execv(cmd,args);
+    execv(cmd,args_merge(0,args2,args1));
 
     _exit(EXIT_FAILURE);
   }
@@ -382,7 +388,6 @@ fw32_upgrade(void)
   };
   char *args2[] =
   {
-    "/usr/bin/fc-cache",
     "--force",
     "--system-only",
     0
