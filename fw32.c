@@ -28,7 +28,8 @@ static const char *FW32_DIRS[] =
   "/usr/share/fonts",
   "/usr/share/themes",
   "/media",
-  "/mnt"
+  "/mnt",
+  0
 };
 
 static void
@@ -134,6 +135,15 @@ umount_directory(const char *path)
 
   if(umount2(path,UMOUNT_NOFOLLOW) && errno != EINVAL)
     error("Failed to umount directory: %s: %s\n",path,strerror(errno));
+}
+
+static void
+mount_all(void)
+{
+  const char **p;
+
+  for( p = FW32_DIRS ; *p ; ++p )
+    mount_directory(*p);
 }
 
 int main(int argc,char **argv) { umount_directory(argv[1]); }
