@@ -424,11 +424,6 @@ fw32_run(int i,char **args1)
 {
   char cwd[PATH_MAX];
   struct passwd *pwd;
-  char *args2[] =
-  {
-    "-l",
-    0
-  };
 
   if(!getcwd(cwd,sizeof cwd))
     error("getcwd: %s\n",strerror(errno));
@@ -439,7 +434,7 @@ fw32_run(int i,char **args1)
     error("Failed to retrieve password entry.\n");
 
   if(i < 1)
-    run(pwd->pw_shell,cwd,true,args2);
+    run(pwd->pw_shell,cwd,true,args1);
   else
     run(args1[0],cwd,true,args1+1);
 }
