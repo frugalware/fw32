@@ -297,6 +297,8 @@ pacman_g2(char **args1)
   pid_t id;
   int status;
 
+  assert(args1);
+
   umount_all();
 
   mount_directory("/var/cache/pacman-g2/pkg");
@@ -336,6 +338,8 @@ pacman_g2(char **args1)
 static int
 nftw_cb(const char *path,const struct stat *st,int type,struct FTW *buf)
 {
+  assert(path && st && buf);
+
   if(remove(path))
     return 1;
 
