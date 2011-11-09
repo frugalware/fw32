@@ -157,4 +157,5 @@ Some `nobuild` packages (like Skype) are available on x86_64, even if
 upstream provides an i686 binary only. In that case the package has to
 be installed inside the i686 chroot and on the host system as well: the
 host package will contain a desktop file and an icon only to invoke the
-chrooted package.
+chrooted package. See the fw32-merge command for details on how to install
+the i686 version.
