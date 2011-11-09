@@ -1,8 +1,6 @@
 CFLAGS ?= -O2
 CFLAGS += -D_GNU_SOURCE -DNDEBUG
 
-DESTDIR ?= /
-
 all: fw32
 
 install: all
@@ -25,3 +23,4 @@ install: all
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-mount-all
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-umount-all
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-update
+	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-install-package

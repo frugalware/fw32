@@ -488,6 +488,18 @@ fw32_install(char **args1)
 }
 
 static void
+fw32_install_package(char **args1)
+{
+  char *args2[] =
+  {
+    "-Uf",
+    0
+  };
+
+  pacman_g2(args_merge(0,args2,args1));
+}
+
+static void
 fw32_remove(char **args1)
 {
   char *args2[] =
@@ -546,6 +558,8 @@ main(int argc,char **argv)
     fw32_upgrade();
   else if(!strcmp(cmd,"fw32-install"))
     fw32_install(args);
+  else if(!strcmp(cmd,"fw32-install-package"))
+    fw32_install_package(args);
   else if(!strcmp(cmd,"fw32-remove"))
     fw32_remove(args);
   else if(!strcmp(cmd,"fw32-clean"))
