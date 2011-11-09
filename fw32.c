@@ -72,6 +72,21 @@ static FW32_DIR FW32_DIRS_BASE[] =
   {                      0, false }
 };
 
+static char *FW32_DEF_PKGS[] =
+{
+  "chroot-core",
+  "devel-core",
+  "procps",
+  "kbd",
+  "psmisc",
+  "less",
+  "git",
+  "darcs",
+  "man",
+  "openssh",
+  0
+};
+
 static void
 error(const char *fmt,...)
 {
@@ -498,16 +513,6 @@ fw32_create(void)
   char *args[] =
   {
     "-Sy",
-    "chroot-core",
-    "devel-core",
-    "procps",
-    "kbd",
-    "psmisc",
-    "less",
-    "git",
-    "darcs",
-    "man",
-    "openssh",
     0
   };
 
@@ -523,7 +528,7 @@ fw32_create(void)
     mkdir_parents(path);
   }
 
-  pacman_g2(args);
+  pacman_g2(args_merge(0,args,FW32_DEF_PKGS));
 }
 
 static void
