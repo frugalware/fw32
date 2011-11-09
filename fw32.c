@@ -288,21 +288,66 @@ mount_all(void)
 static void
 umount_all(void)
 {
-  FW32_DIR *p, d;
-  char path[PATH_MAX];
+  char line[LINE_MAX];
+  char *p, *s, *e;
+  size_t n;
+  FILE *in, *out;
+  FW32_DIR d;
 
-  p = FW32_DIRS;
+  in = fopen("/proc/mounts","rb");
 
-  while(p->dir)
+  if(!in)
+    error("Cannot open /proc/mounts for reading.\n");
+
+  out = open_memstream(&p,&n);
+
+  if(!out)
+    error("Failed to open a memory stream.\n");
+
+  while(fgets(line,sizeof line,in))
   {
-    snprintf(path,sizeof path,"%s%s",FW32_ROOT,(p++)->dir);
+    s = strchr(line,' ');
 
-    d.dir = path;
+    if(!s)
+      continue;
+
+    e = strchr(++s,' ');
+
+    if(!e)
+      continue;
+
+    *e = 0;
+
+    if(!strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
+      if(fwrite(s,1,e-s,out) != e-s || fwrite("\n",1,1,out) != 1 || fflush(out))
+        error("Failed to write to memory stream.\n");
+  }
+
+  fclose(in);
+
+  fclose(out);
+
+  s = p;
+
+  while(true)
+  {
+    e = strchr(s,'\n');
+
+    if(!e)
+      break;
+
+    *e++ = 0;
+
+    d.dir = s;
 
     d.ro = false;
 
     umount_directory(&d);
+
+    s = e;
   }
+
+  free(p);
 }
 
 static void
