@@ -1,5 +1,5 @@
 CFLAGS ?= -O2
-CFLAGS += -D_GNU_SOURCE -DNDEBUG
+CFLAGS += -D_GNU_SOURCE -DNDEBUG -Wall -Wextra
 
 all: fw32
 
