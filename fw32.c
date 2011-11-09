@@ -292,11 +292,11 @@ mount_directory(FW32_DIR *src)
   if(ismounted(dst))
     return;
 
-  if(mount(src->dir,dst,"fw32",MS_BIND,""))
+  if(mount(src->dir,dst,"",MS_BIND,""))
     error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 
   if(src->ro)
-    if(mount(src->dir,dst,"fw32",MS_BIND | MS_RDONLY | MS_REMOUNT,""))
+    if(mount(src->dir,dst,"",MS_BIND | MS_RDONLY | MS_REMOUNT,""))
       error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 }
 
@@ -483,21 +483,16 @@ fw32_create(void)
   char *args[] =
   {
     "-Sy",
-    "shadow",
-    "coreutils",
-    "findutils",
-    "which",
-    "wget",
-    "file",
-    "tar",
-    "gzip",
-    "bzip2",
-    "util-linux",
+    "chroot-core",
+    "devel-core",
     "procps",
     "kbd",
     "psmisc",
     "less",
-    "pacman-g2",
+    "git",
+    "darcs",
+    "man",
+    "openssh",
     0
   };
 
