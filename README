@@ -41,12 +41,22 @@ fw32-remove <packages>
 
 WARNING: Should not be used while someone is using the chroot.
 
-=== Installing local i686 FPM package to chroot
+=== Installing local FPM package to chroot
 
 Command to use (with sudo or root shell):
 
 ----
-fw32-install-package <i686 FPM packages>
+fw32-install-package <FPM packages>
+----
+
+WARNING: Should not be used while someone is using the chroot.
+
+=== Installing nobuild package to chroot
+
+Command to use (with sudo or root shell):
+
+----
+fw32-merge <package>
 ----
 
 WARNING: Should not be used while someone is using the chroot.
@@ -117,6 +127,10 @@ WARNING: Should not be used while someone is using the chroot.
 WARNING: Should not be used while someone is using the chroot.
 
 - fw32-install-package: Install all i686 FPMs specified to chroot.
+
+WARNING: Should not be used while someone is using the chroot.
+
+- fw32-merge: Install a nobuild package to chroot.
 
 WARNING: Should not be used while someone is using the chroot.
 
