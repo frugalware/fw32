@@ -1,4 +1,4 @@
-CFLAGS ?= -O2 
+CFLAGS ?= -O2
 CFLAGS += -D_GNU_SOURCE
 
 DESTDIR ?= /
@@ -24,3 +24,4 @@ install: all
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-clean
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-mount-all
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-umount-all
+	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-update

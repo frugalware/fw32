@@ -400,6 +400,26 @@ fw32_delete(void)
 }
 
 static void
+fw32_update(void)
+{
+  struct stat st;
+  const char **p;
+  char path[PATH_MAX];
+
+  if(stat(FW32_ROOT,&st))
+    error("%s does not exist.\n",FW32_ROOT);
+
+  p = FW32_DIRS;
+
+  while(*p)
+  {
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,*p++);
+
+    mkdir_parents(path);
+  }
+}
+
+static void
 fw32_upgrade(void)
 {
   char *args1[] =
@@ -512,6 +532,8 @@ main(int argc,char **argv)
 
   if(!strcmp(cmd,"fw32-create"))
     fw32_create();
+  else if(!strcmp(cmd,"fw32-update"))
+    fw32_update();
   else if(!strcmp(cmd,"fw32-delete"))
     fw32_delete();
   else if(!strcmp(cmd,"fw32-run"))
