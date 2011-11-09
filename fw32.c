@@ -576,6 +576,16 @@ fw32_upgrade(void)
   };
   char *args2[] =
   {
+    "update",
+    0
+  };
+  char *args3[] =
+  {
+    "upgrade",
+    0
+  };
+  char *args4[] =
+  {
     "--force",
     "--system-only",
     0
@@ -583,7 +593,11 @@ fw32_upgrade(void)
 
   pacman_g2(args1);
 
-  run("/usr/bin/fc-cache","/",false,args2);
+  repoman(args2);
+
+  repoman(args3);
+
+  run("/usr/bin/fc-cache","/",false,args4);
 }
 
 static void
