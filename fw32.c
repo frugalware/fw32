@@ -399,6 +399,17 @@ umount_all(void)
 }
 
 static void
+mount_base(void)
+{
+  FW32_DIR *p;
+
+  p = FW32_DIRS_BASE;
+
+  while(p->dir)
+    mount_directory(p++);
+}
+
+static void
 pacman_g2(char **args1)
 {
   pid_t id;
