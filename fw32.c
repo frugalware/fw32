@@ -401,13 +401,12 @@ pacman_g2(char **args1)
 {
   pid_t id;
   int status;
-  FW32_DIR cache = { "/var/cache/pacman-g2", false };
 
   assert(args1);
 
   umount_all();
 
-  mount_directory(&cache);
+  mount_base();
 
   id = fork();
 
@@ -436,7 +435,7 @@ pacman_g2(char **args1)
   if(!WIFEXITED(status) || WEXITSTATUS(status))
     error("pacman-g2 failed to complete its operation.\n");
 
-  umount_directory(&cache);
+  umount_all();
 
   mount_all();
 }
