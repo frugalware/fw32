@@ -87,21 +87,6 @@ xmalloc(size_t n)
   return p;
 }
 
-#if 0
-static char *
-xstrdup(const char *s)
-{
-  char *p;
-
-  p = strdup(s);
-
-  if(!p)
-    error("strdup: %s\n",strerror(errno));
-
-  return p;
-}
-#endif
-
 static size_t
 args_len(char **args)
 {

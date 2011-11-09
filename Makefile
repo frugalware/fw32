@@ -10,7 +10,7 @@ install: all
 	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/etc/fw32 $(DESTDIR)/lib/systemd/system
 	mkdir -p $(DESTDIR)/{proc,sys,dev,etc,home,tmp,mnt,media}
 	mkdir -p $(DESTDIR)/usr/share/{kde,icons,fonts,themes}
-	mkdir -p $(DESTDIR)/var/{tmp,cache/pacman-g2}
+	mkdir -p $(DESTDIR)/var/{tmp,cache/pacman-g2,fst}
 	cp fw32 $(DESTDIR)/usr/bin
 	cp pacman-g2.conf $(DESTDIR)/etc/fw32
 	cp fw32.service $(DESTDIR)/lib/systemd/system
@@ -27,3 +27,4 @@ install: all
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-umount-all
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-update
 	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-install-package
+	ln -sf fw32 $(DESTDIR)/usr/bin/fw32-merge
