@@ -24,7 +24,7 @@ static const char *FW32_ROOT = "/usr/lib/fw32";
 
 static const char *FW32_CONFIG = "/etc/fw32/pacman-g2.conf";
 
-static FW32_DIR FW32_DIRS[] =
+static FW32_DIR FW32_DIRS_ALL[] =
 {
   { "/proc",                 true },
   { "/sys",                  true },
@@ -38,6 +38,17 @@ static FW32_DIR FW32_DIRS[] =
   { "/media",               false },
   { "/mnt",                 false },
   { "/home",                false },
+  { "/var/tmp",             false },
+  { "/tmp",                 false },
+  {                      0, false }
+};
+
+static FW32_DIR FW32_DIRS_BASE[] =
+{
+  { "/proc",                 true },
+  { "/sys",                  true },
+  { "/dev",                  true },
+  { "/var/cache/pacman-g2", false },
   { "/var/tmp",             false },
   { "/tmp",                 false },
   {                      0, false }
@@ -316,7 +327,7 @@ mount_all(void)
 {
   FW32_DIR *p;
 
-  p = FW32_DIRS;
+  p = FW32_DIRS_ALL;
 
   while(p->dir)
     mount_directory(p++);
@@ -473,7 +484,7 @@ fw32_create(void)
   if(!stat(FW32_ROOT,&st))
     error("%s appears to already exist.\n",FW32_ROOT);
 
-  p = FW32_DIRS;
+  p = FW32_DIRS_ALL;
 
   while(p->dir)
   {
@@ -510,7 +521,7 @@ fw32_update(void)
   if(stat(FW32_ROOT,&st))
     error("%s does not exist.\n",FW32_ROOT);
 
-  p = FW32_DIRS;
+  p = FW32_DIRS_ALL;
 
   while(p->dir)
   {
