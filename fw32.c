@@ -14,27 +14,33 @@
 #include <assert.h>
 #include <pwd.h>
 
+typedef struct
+{
+  const char *dir;
+  bool ro;
+} FW32_DIR;
+
 static const char *FW32_ROOT = "/usr/lib/fw32";
 
 static const char *FW32_CONFIG = "/etc/fw32/pacman-g2.conf";
 
-static const char *FW32_DIRS[] =
+static FW32_DIR FW32_DIRS[] =
 {
-  "/proc",
-  "/sys",
-  "/dev",
-  "/etc",
-  "/home",
-  "/tmp",
-  "/var/tmp",
-  "/var/cache/pacman-g2",
-  "/usr/share/kde",
-  "/usr/share/icons",
-  "/usr/share/fonts",
-  "/usr/share/themes",
-  "/media",
-  "/mnt",
-  0
+  { "/proc",                 true },
+  { "/sys",                  true },
+  { "/dev",                  true },
+  { "/etc",                  true },
+  { "/usr/share/kde",        true },
+  { "/usr/share/icons",      true },
+  { "/usr/share/fonts",      true },
+  { "/usr/share/themes",     true },
+  { "/var/cache/pacman-g2", false },
+  { "/media",               false },
+  { "/mnt",                 false },
+  { "/home",                false },
+  { "/var/tmp",             false },
+  { "/tmp",                 false },
+  {                      0, false }
 };
 
 static void
@@ -240,54 +246,62 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
 }
 
 static void
-mount_directory(const char *src)
+mount_directory(FW32_DIR *src)
 {
   char dst[PATH_MAX];
 
   assert(src);
 
-  snprintf(dst,sizeof dst,"%s%s",FW32_ROOT,src);
+  snprintf(dst,sizeof dst,"%s%s",FW32_ROOT,src->dir);
 
   if(ismounted(dst))
     return;
 
-  if(mount(src,dst,"",MS_BIND,""))
+  if(mount(src->dir,dst,"fw32",MS_BIND,""))
     error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
+
+  if(src->ro)
+    if(mount(src->dir,dst,"fw32",MS_BIND | MS_RDONLY | MS_REMOUNT,""))
+      error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 }
 
 static void
-umount_directory(const char *path)
+umount_directory(FW32_DIR *path)
 {
   assert(path);
 
-  if(umount2(path,UMOUNT_NOFOLLOW) && errno != EINVAL)
-    error("Failed to umount directory: %s: %s\n",path,strerror(errno));
+  if(umount2(path->dir,UMOUNT_NOFOLLOW) && errno != EINVAL)
+    error("Failed to umount directory: %s: %s\n",path->dir,strerror(errno));
 }
 
 static void
 mount_all(void)
 {
-  const char **p;
+  FW32_DIR *p;
 
   p = FW32_DIRS;
 
-  while(*p)
-    mount_directory(*p++);
+  while(p->dir)
+    mount_directory(p++);
 }
 
 static void
 umount_all(void)
 {
-  const char **p;
+  FW32_DIR *p, d;
   char path[PATH_MAX];
 
   p = FW32_DIRS;
 
-  while(*p)
+  while(p->dir)
   {
-    snprintf(path,sizeof path,"%s%s",FW32_ROOT,*p++);
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,(p++)->dir);
 
-    umount_directory(path);
+    d.dir = path;
+
+    d.ro = false;
+
+    umount_directory(&d);
   }
 }
 
@@ -296,12 +310,13 @@ pacman_g2(char **args1)
 {
   pid_t id;
   int status;
+  FW32_DIR cache = { "/var/cache/pacman-g2", false };
 
   assert(args1);
 
   umount_all();
 
-  mount_directory("/var/cache/pacman-g2");
+  mount_directory(&cache);
 
   id = fork();
 
@@ -330,7 +345,7 @@ pacman_g2(char **args1)
   if(!WIFEXITED(status) || WEXITSTATUS(status))
     error("pacman-g2 failed to complete its operation.\n");
 
-  umount_directory("/var/cache/pacman-g2");
+  umount_directory(&cache);
 
   mount_all();
 }
@@ -350,7 +365,7 @@ static void
 fw32_create(void)
 {
   struct stat st;
-  const char **p;
+  FW32_DIR *p;
   char path[PATH_MAX];
   char *args[] =
   {
@@ -378,9 +393,9 @@ fw32_create(void)
 
   p = FW32_DIRS;
 
-  while(*p)
+  while(p->dir)
   {
-    snprintf(path,sizeof path,"%s%s",FW32_ROOT,*p++);
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,(p++)->dir);
 
     mkdir_parents(path);
   }
@@ -407,7 +422,7 @@ static void
 fw32_update(void)
 {
   struct stat st;
-  const char **p;
+  FW32_DIR *p;
   char path[PATH_MAX];
 
   if(stat(FW32_ROOT,&st))
@@ -415,9 +430,9 @@ fw32_update(void)
 
   p = FW32_DIRS;
 
-  while(*p)
+  while(p->dir)
   {
-    snprintf(path,sizeof path,"%s%s",FW32_ROOT,*p++);
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,(p++)->dir);
 
     mkdir_parents(path);
   }
