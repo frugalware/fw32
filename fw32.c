@@ -133,6 +133,43 @@ args_merge(char *name,char **args1,char **args2)
 }
 
 static void
+cp_file(const char *file)
+{
+  char file2[PATH_MAX];
+  unsigned char buf[4096];
+  FILE *in, *out;
+  size_t n;
+
+  assert(file);
+
+  snprintf(file2,sizeof file2,"%s%s",FW32_ROOT,file);
+
+  in = fopen(file,"rb");
+
+  if(!in)
+    error("Failed to open %s for reading.\n",file);
+
+  out = fopen(file2,"wb");
+
+  if(!out)
+    error("Failed to open %s for writing.\n",file2);
+
+  while(true)
+  {
+    n = fread(buf,sizeof *buf,sizeof buf,in);
+
+    if(!n)
+      break;
+
+    fwrite(buf,sizeof *buf,n,out);
+  }
+
+  fclose(in);
+
+  fclose(out);
+}
+
+static void
 mkdir_parents(const char *s)
 {
   char path[PATH_MAX], *p;
