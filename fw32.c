@@ -35,6 +35,7 @@ static FW32_DIR FW32_DIRS_ALL[] =
   { "/usr/share/fonts",      true },
   { "/usr/share/themes",     true },
   { "/var/cache/pacman-g2", false },
+  { "/var/fst",             false },
   { "/media",               false },
   { "/mnt",                 false },
   { "/home",                false },
@@ -48,6 +49,7 @@ static FW32_DIR FW32_DIRS_BASE[] =
   { "/proc",                 true },
   { "/sys",                  true },
   { "/dev",                  true },
+  { "/var/fst",             false },
   { "/var/cache/pacman-g2", false },
   { "/var/tmp",             false },
   { "/tmp",                 false },
@@ -454,6 +456,28 @@ pacman_g2(char **args1)
   mount_all();
 }
 
+static void
+repoman(char **args)
+{
+  assert(args);
+
+  umount_all();
+
+  cp_file("/etc/resolv.conf");
+
+  cp_file("/etc/services");
+
+  cp_file("/etc/localtime");
+
+  mount_base();
+
+  run("/usr/bin/repoman","/",false,args);
+
+  umount_all();
+
+  mount_all();
+}
+
 static int
 nftw_cb(const char *path,const struct stat *st,int type,struct FTW *buf)
 {
@@ -563,6 +587,27 @@ fw32_upgrade(void)
 }
 
 static void
+fw32_merge(char **args1)
+{
+  char *args2[] =
+  {
+    "update",
+    0
+  };
+  char *args3[] =
+  {
+    "merge",
+    0
+  };
+
+  assert(args1);
+
+  repoman(args2);
+
+  repoman(args_merge(0,args3,args1));
+}
+
+static void
 fw32_run(int i,char **args1)
 {
   char cwd[PATH_MAX];
@@ -669,6 +714,8 @@ main(int argc,char **argv)
     fw32_create();
   else if(!strcmp(cmd,"fw32-update"))
     fw32_update();
+  else if(!strcmp(cmd,"fw32-merge"))
+    fw32_merge(args);
   else if(!strcmp(cmd,"fw32-delete"))
     fw32_delete();
   else if(!strcmp(cmd,"fw32-run"))
