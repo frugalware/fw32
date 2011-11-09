@@ -27,7 +27,7 @@ static const char *FW32_DIRS[] =
   "/home",
   "/tmp",
   "/var/tmp",
-  "/var/cache/pacman-g2/pkg",
+  "/var/cache/pacman-g2",
   "/usr/share/kde",
   "/usr/share/icons",
   "/usr/share/fonts",
@@ -301,7 +301,7 @@ pacman_g2(char **args1)
 
   umount_all();
 
-  mount_directory("/var/cache/pacman-g2/pkg");
+  mount_directory("/var/cache/pacman-g2");
 
   id = fork();
 
@@ -330,7 +330,7 @@ pacman_g2(char **args1)
   if(!WIFEXITED(status) || WEXITSTATUS(status))
     error("pacman-g2 failed to complete its operation.\n");
 
-  umount_directory("/var/cache/pacman-g2/pkg");
+  umount_directory("/var/cache/pacman-g2");
 
   mount_all();
 }
