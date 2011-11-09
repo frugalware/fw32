@@ -3,6 +3,9 @@ CFLAGS += -D_GNU_SOURCE -DNDEBUG
 
 all: fw32
 
+clean:
+	$(RM) fw32
+
 install: all
 	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/etc/fw32 $(DESTDIR)/lib/systemd/system
 	mkdir -p $(DESTDIR)/{proc,sys,dev,etc,home,tmp,mnt,media}
