@@ -432,12 +432,13 @@ pacman_g2(char **args1)
 {
   pid_t id;
   int status;
+  FW32_DIR cache = { "/var/cache/pacman-g2", false };
 
   assert(args1);
 
   umount_all();
 
-  mount_base();
+  mount_directory(&cache);
 
   id = fork();
 
