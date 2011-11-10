@@ -555,7 +555,7 @@ fw32_update(void)
   char path[PATH_MAX];
   char *args[] =
   {
-    "-Sy",
+    "-Syf",
     0
   };
 
