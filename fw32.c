@@ -62,9 +62,9 @@ static FW32_DIR FW32_DIRS_ALL[] =
 
 static FW32_DIR FW32_DIRS_BASE[] =
 {
-  { "/proc",                 true },
-  { "/sys",                  true },
-  { "/dev",                  true },
+  { "/proc",                false },
+  { "/sys",                 false },
+  { "/dev",                 false },
   { "/var/fst",             false },
   { "/var/cache/pacman-g2", false },
   { "/var/tmp",             false },
@@ -552,6 +552,11 @@ fw32_update(void)
   struct stat st;
   FW32_DIR *p;
   char path[PATH_MAX];
+  char *args[] =
+  {
+    "-Sy",
+    0
+  };
 
   if(stat(FW32_ROOT,&st))
     error("%s does not exist.\n",FW32_ROOT);
@@ -564,6 +569,8 @@ fw32_update(void)
 
     mkdir_parents(path);
   }
+
+  pacman_g2(args_merge(0,args,FW32_DEF_PKGS));
 }
 
 static void
