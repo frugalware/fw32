@@ -294,7 +294,7 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
       error("Failed to chdir to %s.\n",dir);
 
     if(drop)
-      if(setuid(getuid()) || seteuid(getuid()))
+      if(setuid(getuid()) || seteuid(getuid()) || setgid(getgid()) || setegid(getgid()))
         error("Failed to drop root privileges.\n");
 
     execvp(cmd,args_merge(0,args2,args1));
