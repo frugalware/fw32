@@ -87,6 +87,27 @@ static char *FW32_DEF_PKGS[] =
   0
 };
 
+static bool
+is_cmd(const char *s,const char *cmd)
+{
+  char buf[PATH_MAX];
+
+  if(!strcmp(s,cmd))
+    return true;
+
+  snprintf(buf,sizeof buf,"/usr/sbin/%s",cmd);
+
+  if(!strcmp(s,buf))
+    return true;
+
+  snprintf(buf,sizeof buf,"/usr/bin/%s",cmd);
+
+  if(!strcmp(s,buf))
+    return true;
+
+  return false;
+}
+
 static void
 error(const char *fmt,...)
 {
@@ -734,29 +755,29 @@ main(int argc,char **argv)
   if(personality(PER_LINUX32))
     error("Failed to enable 32 bit emulation.\n");
 
-  if(!strcmp(cmd,"fw32-create"))
+  if(is_cmd(cmd,"fw32-create"))
     fw32_create();
-  else if(!strcmp(cmd,"fw32-update"))
+  else if(is_cmd(cmd,"fw32-update"))
     fw32_update();
-  else if(!strcmp(cmd,"fw32-merge"))
+  else if(is_cmd(cmd,"fw32-merge"))
     fw32_merge(args);
-  else if(!strcmp(cmd,"fw32-delete"))
+  else if(is_cmd(cmd,"fw32-delete"))
     fw32_delete();
-  else if(!strcmp(cmd,"fw32-run"))
+  else if(is_cmd(cmd,"fw32-run"))
     fw32_run(i,args);
-  else if(!strcmp(cmd,"fw32-upgrade"))
+  else if(is_cmd(cmd,"fw32-upgrade"))
     fw32_upgrade();
-  else if(!strcmp(cmd,"fw32-install"))
+  else if(is_cmd(cmd,"fw32-install"))
     fw32_install(args);
-  else if(!strcmp(cmd,"fw32-install-package"))
+  else if(is_cmd(cmd,"fw32-install-package"))
     fw32_install_package(args);
-  else if(!strcmp(cmd,"fw32-remove"))
+  else if(is_cmd(cmd,"fw32-remove"))
     fw32_remove(args);
-  else if(!strcmp(cmd,"fw32-clean"))
+  else if(is_cmd(cmd,"fw32-clean"))
     fw32_clean();
-  else if(!strcmp(cmd,"fw32-mount-all"))
+  else if(is_cmd(cmd,"fw32-mount-all"))
     fw32_mount_all();
-  else if(!strcmp(cmd,"fw32-umount-all"))
+  else if(is_cmd(cmd,"fw32-umount-all"))
     fw32_umount_all();
 
   return EXIT_SUCCESS;
