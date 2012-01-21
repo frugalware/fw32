@@ -323,6 +323,8 @@ mount_directory(FW32_DIR *src)
   if(ismounted(dst))
     return;
 
+  mkdir_parents(dst);
+
   if(mount(src->dir,dst,"",MS_BIND,""))
     error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 
