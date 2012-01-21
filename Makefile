@@ -11,6 +11,7 @@ install: all
 	mkdir -p $(DESTDIR)/{proc,sys,dev,etc,home,tmp,mnt,media}
 	mkdir -p $(DESTDIR)/usr/share/{kde,icons,fonts,themes}
 	mkdir -p $(DESTDIR)/var/{tmp,cache/pacman-g2,fst}
+	chmod 1777 $(DESTDIR)/tmp
 	cp fw32 $(DESTDIR)/usr/bin
 	cp pacman-g2.conf $(DESTDIR)/etc/fw32
 	cp fw32.service $(DESTDIR)/lib/systemd/system
