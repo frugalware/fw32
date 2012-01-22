@@ -600,6 +600,7 @@ fw32_update(void)
 static void
 fw32_upgrade(void)
 {
+  struct stat st;
   char *args1[] =
   {
     "-Syuf",
@@ -624,9 +625,12 @@ fw32_upgrade(void)
 
   pacman_g2(args1);
 
-  repoman(args2);
+  if(!stat("/var/fst/current",&st) || !stat("/var/fst/stable",&st))
+  {
+    repoman(args2);
 
-  repoman(args3);
+    repoman(args3);
+  }
 
   run("/usr/bin/fc-cache","/",false,args4);
 }
