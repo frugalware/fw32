@@ -3,8 +3,8 @@ Description=Mount fw32 root directories at startup.
 After=syslog.target
 
 [Service]
-ExecStart=/usr/bin/fw32-mount-all
-ExecStop=/usr/bin/fw32-umount-all
+ExecStart=/usr/sbin/fw32-mount-all
+ExecStop=/usr/sbin/fw32-umount-all
 Type=oneshot
 StandardOutput=syslog
 RemainAfterExit=yes
