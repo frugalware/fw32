@@ -42,10 +42,10 @@ static const char *FW32_CONFIG = "/etc/fw32/pacman-g2.conf";
 
 static FW32_DIR FW32_DIRS_ALL[] =
 {
-  { "/proc",                 true },
-  { "/sys",                  true },
-  { "/dev",                  true },
-  { "/etc",                  true },
+  { "/proc",                false },
+  { "/sys",                 false },
+  { "/dev",                 false },
+  { "/etc",                 false },
   { "/usr/share/kde",        true },
   { "/usr/share/icons",      true },
   { "/usr/share/fonts",      true },
@@ -512,6 +512,19 @@ repoman(char **args)
   mount_all();
 }
 
+static void
+makepkg(char **args)
+{
+  char cwd[PATH_MAX];
+
+  assert(args);
+
+  if(!getcwd(cwd,sizeof cwd))
+    error("getcwd: %s\n",strerror(errno));
+
+  run("/usr/bin/makepkg",cwd,false,args);
+}
+
 static int
 nftw_cb(const char *path,const struct stat *st,int type,struct FTW *buf)
 {
@@ -652,6 +665,14 @@ fw32_merge(char **args1)
 }
 
 static void
+fw32_makepkg(char **args1)
+{
+  assert(args1);
+
+  makepkg(args1);
+}
+
+static void
 fw32_run(int i,char **args1)
 {
   char cwd[PATH_MAX];
@@ -760,6 +781,8 @@ main(int argc,char **argv)
     fw32_update();
   else if(is_cmd(cmd,"fw32-merge"))
     fw32_merge(args);
+  else if(is_cmd(cmd,"fw32-makepkg"))
+    fw32_makepkg(args);
   else if(is_cmd(cmd,"fw32-delete"))
     fw32_delete();
   else if(is_cmd(cmd,"fw32-run"))

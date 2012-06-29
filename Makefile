@@ -31,3 +31,4 @@ install: all
 	ln -sf /usr/sbin/fw32 $(DESTDIR)/usr/sbin/fw32-update
 	ln -sf /usr/sbin/fw32 $(DESTDIR)/usr/sbin/fw32-install-package
 	ln -sf /usr/sbin/fw32 $(DESTDIR)/usr/sbin/fw32-merge
+	ln -sf /usr/sbin/fw32 $(DESTDIR)/usr/sbin/fw32-makepkg
