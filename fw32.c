@@ -415,7 +415,7 @@ umount_all(void)
     if(!strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
     {
       char *ptr = strstr(s,"\\040");
-      if(ptr);
+      if(ptr)
         *ptr = 0;
       if(fwrite(s,1,e-s,out) != e-s || fwrite("\n",1,1,out) != 1 || fflush(out))
         error("Failed to write to memory stream.\n");
