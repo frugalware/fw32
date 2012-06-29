@@ -773,7 +773,7 @@ main(int argc,char **argv)
 
   i = argc - 1;
 
-  if(!strcmp(cmd,"fw32-run"))
+  if(is_cmd(cmd,"fw32-run"))
   {
     if(!getuid() || geteuid())
       error("This must be run as non-root, be SETUID, and owned by root.\n");
