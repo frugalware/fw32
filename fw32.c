@@ -272,7 +272,7 @@ ismounted(const char *path)
 
     char *ptr = strstr(s,"\\040");
 
-    if(ptr);
+    if(ptr)
       *ptr = 0;
 
     if(!strcmp(s,path))
@@ -364,7 +364,7 @@ umount_directory(FW32_DIR *path)
 {
   assert(path);
 
-  if(umount2(path->dir,UMOUNT_NOFOLLOW) && errno != EINVAL)
+  if(umount2(path->dir,UMOUNT_NOFOLLOW) && (errno != EINVAL || errno != ENOENT))
     error("Failed to umount directory: %s: %s\n",path->dir,strerror(errno));
 }
 
