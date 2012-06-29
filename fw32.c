@@ -503,12 +503,6 @@ repoman(char **args)
 
   umount_all();
 
-  cp_file("/etc/resolv.conf");
-
-  cp_file("/etc/services");
-
-  cp_file("/etc/localtime");
-
   mount_base();
 
   run("/usr/bin/repoman","/",false,args);
