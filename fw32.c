@@ -673,8 +673,9 @@ fw32_merge(char **args1)
 static void
 fw32_run(int i,char **args1)
 {
-  char cwd[PATH_MAX];
+  char cwd[PATH_MAX], path[PATH_MAX], *dir;
   struct passwd *pwd;
+  struct stat st;
 
   if(!getcwd(cwd,sizeof cwd))
     error("getcwd: %s\n",strerror(errno));
@@ -684,10 +685,14 @@ fw32_run(int i,char **args1)
   if(!pwd)
     error("Failed to retrieve password entry.\n");
 
+  snprintf(path,sizeof path,"%s%s",FW32_ROOT,cwd);
+
+  dir = stat(path,&st) ? pwd->pw_dir : cwd;
+
   if(i < 1)
-    run(pwd->pw_shell,cwd,true,args1);
+    run(pwd->pw_shell,dir,true,args1);
   else
-    run(args1[0],cwd,true,args1+1);
+    run(args1[0],dir,true,args1+1);
 }
 
 static void
