@@ -490,6 +490,8 @@ pacman_g2(char **args1)
   if(!WIFEXITED(status) || WEXITSTATUS(status))
     error("pacman-g2 failed to complete its operation.\n");
 
+  sleep(1);
+
   umount_all();
 
   mount_all();
@@ -511,6 +513,8 @@ repoman(char **args)
   mount_base();
 
   run("/usr/bin/repoman","/",false,args);
+
+  sleep(1);
 
   umount_all();
 
