@@ -270,6 +270,11 @@ ismounted(const char *path)
 
     *e = 0;
 
+    char *ptr = strstr(s,"\\040");
+
+    if(ptr);
+      *ptr = 0;
+
     if(!strcmp(s,path))
     {
       found = true;
