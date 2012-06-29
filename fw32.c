@@ -65,6 +65,7 @@ static FW32_DIR FW32_DIRS_BASE[] =
   { "/proc",                false },
   { "/sys",                 false },
   { "/dev",                 false },
+  { "/etc",                 false },
   { "/var/fst",             false },
   { "/var/cache/pacman-g2", false },
   { "/var/tmp",             false },
