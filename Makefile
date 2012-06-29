@@ -7,7 +7,7 @@ clean:
 	$(RM) fw32
 
 install: all
-	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/etc/fw32 $(DESTDIR)/lib/systemd/system
+	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/etc/{fw32,pacman-g2/repos} $(DESTDIR)/lib/systemd/system
 	mkdir -p $(DESTDIR)/usr/sbin
 	mkdir -p $(DESTDIR)/{proc,sys,dev,etc,home,tmp,mnt,media}
 	mkdir -p $(DESTDIR)/usr/share/{kde,icons,fonts,themes}
@@ -15,6 +15,7 @@ install: all
 	chmod 1777 $(DESTDIR)/tmp
 	cp fw32 $(DESTDIR)/usr/sbin
 	cp pacman-g2.conf $(DESTDIR)/etc/fw32
+	cp stable_i686 current_i686 $(DESTDIR)/etc/pacman-g2/repos
 	cp fw32.service $(DESTDIR)/lib/systemd/system
 	chown root:root $(DESTDIR)/usr/sbin/fw32
 	chmod +s $(DESTDIR)/usr/sbin/fw32
