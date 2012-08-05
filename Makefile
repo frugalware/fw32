@@ -14,6 +14,7 @@ install: all
 	mkdir -p $(DESTDIR)/var/{tmp,cache/pacman-g2,fst}
 	chmod 1777 $(DESTDIR)/tmp
 	cp fw32 $(DESTDIR)/usr/sbin
+	cp fw32-makepkg $(DESTDIR)/usr/sbin
 	cp pacman-g2.conf $(DESTDIR)/etc/fw32
 	cp fw32.service $(DESTDIR)/lib/systemd/system
 	chown root:root $(DESTDIR)/usr/sbin/fw32
