@@ -81,7 +81,6 @@ static char *FW32_DEF_PKGS[] =
   "psmisc",
   "less",
   "git",
-  "darcs",
   "man",
   "openssh",
   0
