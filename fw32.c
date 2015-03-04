@@ -72,7 +72,7 @@ static FW32_DIR FW32_DIRS_BASE[] =
   {                      0, false }
 };
 
-static char *FW32_DEF_PKGS[] =
+static const char *FW32_DEF_PKGS[] =
 {
   "chroot-core",
   "devel-core",
@@ -139,7 +139,7 @@ xmalloc(size_t n)
 }
 
 static size_t
-args_len(char **args)
+args_len(const char **args)
 {
   size_t n;
 
@@ -151,11 +151,11 @@ args_len(char **args)
   return n;
 }
 
-static char **
-args_merge(char *name,char **args1,char **args2)
+static const char **
+args_merge(const char *name,const char **args1,const char **args2)
 {
   size_t i;
-  char **args3;
+  const char ** args3;
 
   assert(args1 && args2);
 
@@ -288,7 +288,7 @@ ismounted(const char *path)
 }
 
 static void
-run(const char *cmd,const char *dir,bool drop,char **args1)
+run(const char *cmd,const char *dir,bool drop,const char **args1)
 {
   char path[PATH_MAX];
   struct stat st;
@@ -306,10 +306,10 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
 
   if(!id)
   {
-    char *args2[] =
+	const char* args2[] =
     {
       cmd,
-      0
+      NULL
     };
 
     if(chroot(FW32_ROOT))
@@ -322,7 +322,7 @@ run(const char *cmd,const char *dir,bool drop,char **args1)
       if(setuid(getuid()) || seteuid(getuid()) || setgid(getgid()) || setegid(getgid()))
         error("Failed to drop root privileges.\n");
 
-    execvp(cmd,args_merge(0,args2,args1));
+    execvp(cmd,(char * const*)args_merge(NULL,args2,args1));
 
     _exit(errno);
   }
@@ -460,7 +460,7 @@ mount_base(void)
 }
 
 static void
-pacman_g2(char **args1)
+pacman_g2(const char **args1)
 {
   pid_t id;
   int status;
@@ -476,7 +476,7 @@ pacman_g2(char **args1)
 
   if(!id)
   {
-    char *args2[] =
+    const char *args2[] =
     {
       "--noconfirm",
       "--root",
@@ -486,7 +486,7 @@ pacman_g2(char **args1)
       0
     };
 
-    execv("/usr/bin/pacman-g2",args_merge("/usr/bin/pacman-g2",args2,args1));
+    execv("/usr/bin/pacman-g2",(char * const*)args_merge("/usr/bin/pacman-g2",args2,args1));
 
     _exit(EXIT_FAILURE);
   }
@@ -507,7 +507,7 @@ pacman_g2(char **args1)
 }
 
 static void
-repoman(char **args)
+repoman(const char **args)
 {
   assert(args);
 
@@ -531,7 +531,8 @@ repoman(char **args)
 }
 
 static int
-nftw_cb(const char *path,const struct stat *st,int type,struct FTW *buf)
+nftw_cb( const char *path,const struct stat *st __attribute__ ((unused)),
+		int type __attribute__ ((unused)),struct FTW *buf __attribute__ ((unused)) )
 {
   assert(path && st && buf);
 
@@ -547,7 +548,7 @@ fw32_create(void)
   struct stat st;
   FW32_DIR *p;
   char path[PATH_MAX];
-  char *args[] =
+  const char *args[] =
   {
     "-Sy",
     0
@@ -565,7 +566,7 @@ fw32_create(void)
     mkdir_parents(path);
   }
 
-  pacman_g2(args_merge(0,args,FW32_DEF_PKGS));
+  pacman_g2(args_merge(NULL,args,FW32_DEF_PKGS));
 }
 
 static void
@@ -589,7 +590,7 @@ fw32_update(void)
   struct stat st;
   FW32_DIR *p;
   char path[PATH_MAX];
-  char *args[] =
+  const char *args[] =
   {
     "-Syf",
     0
@@ -607,29 +608,29 @@ fw32_update(void)
     mkdir_parents(path);
   }
 
-  pacman_g2(args_merge(0,args,FW32_DEF_PKGS));
+  pacman_g2(args_merge(NULL,args,FW32_DEF_PKGS));
 }
 
 static void
 fw32_upgrade(void)
 {
   struct stat st;
-  char *args1[] =
+  const char *args1[] =
   {
     "-Syuf",
     0
   };
-  char *args2[] =
+  const char *args2[] =
   {
     "update",
     0
   };
-  char *args3[] =
+  const char *args3[] =
   {
     "upgrade",
     0
   };
-  char *args4[] =
+  const char *args4[] =
   {
     "--force",
     "--system-only",
@@ -649,14 +650,14 @@ fw32_upgrade(void)
 }
 
 static void
-fw32_merge(char **args1)
+fw32_merge(const char **args1)
 {
-  char *args2[] =
+  const char *args2[] =
   {
     "update",
     0
   };
-  char *args3[] =
+  const char *args3[] =
   {
     "merge",
     0
@@ -670,7 +671,7 @@ fw32_merge(char **args1)
 }
 
 static void
-fw32_run(int i,char **args1)
+fw32_run(int i,const char **args1)
 {
   char cwd[PATH_MAX], path[PATH_MAX], *dir;
   struct passwd *pwd;
@@ -697,7 +698,7 @@ fw32_run(int i,char **args1)
 static void
 fw32_clean(void)
 {
-  char *args[] =
+  const char *args[] =
   {
     "-Sc",
     0
@@ -707,33 +708,33 @@ fw32_clean(void)
 }
 
 static void
-fw32_install(char **args1)
+fw32_install(const char **args1)
 {
-  char *args2[] =
+  const char *args2[] =
   {
     "-Syf",
     0
   };
 
-  pacman_g2(args_merge(0,args2,args1));
+  pacman_g2(args_merge(NULL,args2,args1));
 }
 
 static void
-fw32_install_package(char **args1)
+fw32_install_package(const char **args1)
 {
-  char *args2[] =
+  const char *args2[] =
   {
     "-Uf",
     0
   };
 
-  pacman_g2(args_merge(0,args2,args1));
+  pacman_g2(args_merge(NULL,args2,args1));
 }
 
 static void
-fw32_remove(char **args1)
+fw32_remove(const char **args1)
 {
-  char *args2[] =
+  const char *args2[] =
   {
     "-Rsc",
     0
@@ -755,9 +756,9 @@ fw32_umount_all(void)
 }
 
 extern int
-main(int argc,char **argv)
+main(int argc,const char **argv)
 {
-  char *cmd, **args;
+  const char *cmd, **args;
   int i;
 
   cmd = argv[0];
