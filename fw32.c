@@ -677,6 +677,8 @@ fw32_run(int i,const char **args1)
   struct passwd *pwd;
   struct stat st;
 
+  mount_all();
+
   if(!getcwd(cwd,sizeof cwd))
     error("getcwd: %s\n",strerror(errno));
 
