@@ -48,6 +48,7 @@ static FW32_DIR FW32_DIRS_ALL[] =
   { "/etc",                 false },
   { "/dev/pts",             false },
   { "/dev/shm",             false },
+  { "/run/user",            false },
   { "/usr/share/kde",        true },
   { "/usr/share/icons",      true },
   { "/usr/share/fonts",      true },
