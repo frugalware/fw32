@@ -30,6 +30,9 @@
 #include <assert.h>
 #include <pwd.h>
 
+#include <string>
+#include <vector>
+
 typedef struct
 {
   const char *dir;
@@ -90,21 +93,20 @@ static const char *FW32_DEF_PKGS[] =
 };
 
 static bool
-is_cmd(const char *s,const char *cmd)
+is_cmd(const std::string& s,const std::string cmd)
 {
-  char buf[PATH_MAX];
-
-  if(!strcmp(s,cmd))
+  if(s == cmd)
     return true;
 
-  snprintf(buf,sizeof buf,"/usr/sbin/%s",cmd);
+  std::string temp;
+  temp = "/usr/sbin/" + cmd;
 
-  if(!strcmp(s,buf))
+  if(s == temp)
     return true;
 
-  snprintf(buf,sizeof buf,"/usr/bin/%s",cmd);
+  temp = "/usr/bin/" + cmd;
 
-  if(!strcmp(s,buf))
+  if(s == temp)
     return true;
 
   return false;
@@ -653,7 +655,7 @@ fw32_upgrade(void)
 }
 
 static void
-fw32_merge(const char **args1)
+fw32_merge(std::vector<const std::string> args1)
 {
   const char *args2[] =
   {
@@ -763,12 +765,16 @@ fw32_umount_all(void)
 extern int
 main(int argc,const char **argv)
 {
-  const char *cmd, **args;
   int i;
+  const std::string cmd;
 
   cmd = argv[0];
 
-  args = argv + 1;
+  std::vector<const std::string> args;
+
+  if (argc > 1) {
+    args.assign(argv + 1, argv + argc);
+  }
 
   i = argc - 1;
 
