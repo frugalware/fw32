@@ -1,5 +1,5 @@
 CXXFLAGS ?= -O2
-CXXFLAGS += -D_GNU_SOURCE -DNDEBUG -Wall -Wextra
+CXXFLAGS += -D_GNU_SOURCE -DNDEBUG -Wall -Wextra -std=c++11
 
 all: fw32
 
