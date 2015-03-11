@@ -293,7 +293,7 @@ ismounted(const char *path)
 }
 
 static void
-run(const char *cmd,const char *dir,bool drop,const char **args1)
+run(const char *cmd,const char *dir,bool drop,std::vector <const char *> args1)
 {
   char path[PATH_MAX];
   struct stat st;
@@ -512,7 +512,7 @@ pacman_g2(const char **args1)
 }
 
 static void
-repoman(const char **args)
+repoman(std::vector<const char *> args)
 {
   assert(args);
 
@@ -655,24 +655,12 @@ fw32_upgrade(void)
 }
 
 static void
-fw32_merge(std::vector<const std::string> args1)
+fw32_merge(std::vector<const char*> args1)
 {
-  const char *args2[] =
-  {
-    "update",
-    0
-  };
-  const char *args3[] =
-  {
-    "merge",
-    0
-  };
+  repoman({"update"});
 
-  assert(args1);
-
-  repoman(args2);
-
-  repoman(args_merge(0,args3,args1));
+  args1.insert(args1.begin(),"merge");
+  repoman(args1);
 }
 
 static void
@@ -766,11 +754,11 @@ extern int
 main(int argc,const char **argv)
 {
   int i;
-  const std::string cmd;
+  const char *cmd;
 
   cmd = argv[0];
 
-  std::vector<const std::string> args;
+  std::vector<const char *> args;
 
   if (argc > 1) {
     args.assign(argv + 1, argv + argc);
