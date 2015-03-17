@@ -32,6 +32,8 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <algorithm>
 
 typedef struct
 {
@@ -43,8 +45,7 @@ static const char *FW32_ROOT = "/usr/lib/fw32";
 
 static const char *FW32_CONFIG = "/etc/fw32/pacman-g2.conf";
 
-static FW32_DIR FW32_DIRS_ALL[] =
-{
+static std::vector<FW32_DIR> FW32_DIRS_ALL {
   { "/proc",                false },
   { "/sys",                 false },
   { "/dev",                 false },
@@ -63,11 +64,9 @@ static FW32_DIR FW32_DIRS_ALL[] =
   { "/home",                false },
   { "/var/tmp",             false },
   { "/tmp",                 false },
-  {                      0, false }
 };
 
-static FW32_DIR FW32_DIRS_BASE[] =
-{
+static std::vector<FW32_DIR> FW32_DIRS_BASE {
   { "/proc",                false },
   { "/sys",                 false },
   { "/dev",                 false },
@@ -75,11 +74,9 @@ static FW32_DIR FW32_DIRS_BASE[] =
   { "/var/cache/pacman-g2", false },
   { "/var/tmp",             false },
   { "/tmp",                 false },
-  {                      0, false }
 };
 
-static const char *FW32_DEF_PKGS[] =
-{
+static std::vector<const char *> FW32_DEF_PKGS {
   "chroot-core",
   "devel-core",
   "procps",
@@ -89,8 +86,25 @@ static const char *FW32_DEF_PKGS[] =
   "git",
   "man",
   "openssh",
-  0
 };
+
+int nrSeparators(const char* s) {
+    int nSep = 0;
+    for(const char* c=s; *c; c++) {
+        if(*c == '/') {
+            nSep++;
+        }
+    }
+    return nSep;
+}
+
+bool hasMoreSeparators(const char *s1, const char *s2) {
+    return nrSeparators(s1) > nrSeparators(s2);
+}
+
+bool hasLessSeparators(const FW32_DIR& s1, const FW32_DIR& s2) {
+    return nrSeparators(s1.dir) < nrSeparators(s2.dir);
+}
 
 static bool
 is_cmd(const std::string& s,const std::string cmd)
@@ -126,64 +140,6 @@ error(const char *fmt,...)
   va_end(args);
 
   exit(EXIT_FAILURE);
-}
-
-static void *
-xmalloc(size_t n)
-{
-  void *p;
-
-  assert(n);
-
-  p = malloc(n);
-
-  if(!p)
-    error("malloc: %s\n",strerror(errno));
-
-  return p;
-}
-
-static size_t
-args_len(const char **args)
-{
-  size_t n;
-
-  assert(args);
-
-  for( n = 0 ; *args ; ++n, ++args )
-    ;
-
-  return n;
-}
-
-static const char **
-args_merge(const char *name,const char **args1,const char **args2)
-{
-  size_t i;
-  const char ** args3;
-
-  assert(args1 && args2);
-
-  i = 0;
-
-  if(name)
-  {
-    args3 = xmalloc((1 + args_len(args1) + args_len(args2) + 1) * sizeof(char *));
-
-    args3[i++] = name;
-  }
-  else
-    args3 = xmalloc((args_len(args1) + args_len(args2) + 1) * sizeof(char *));
-
-  while(*args1)
-    args3[i++] = *args1++;
-
-  while(*args2)
-    args3[i++] = *args2++;
-
-  args3[i] = 0;
-
-  return args3;
 }
 
 static void
@@ -300,8 +256,6 @@ run(const char *cmd,const char *dir,bool drop,std::vector <const char *> args1)
   pid_t id;
   int status;
 
-  assert(cmd && dir && args1);
-
   snprintf(path,sizeof path,"%s%s",FW32_ROOT,dir);
 
   if(stat(path,&st))
@@ -311,11 +265,7 @@ run(const char *cmd,const char *dir,bool drop,std::vector <const char *> args1)
 
   if(!id)
   {
-	const char* args2[] =
-    {
-      cmd,
-      NULL
-    };
+    args1.insert(args1.begin(),cmd);
 
     if(chroot(FW32_ROOT))
       error("Failed to enter chroot %s.",FW32_ROOT);
@@ -327,7 +277,8 @@ run(const char *cmd,const char *dir,bool drop,std::vector <const char *> args1)
       if(setuid(getuid()) || seteuid(getuid()) || setgid(getgid()) || setegid(getgid()))
         error("Failed to drop root privileges.\n");
 
-    execvp(cmd,(char * const*)args_merge(NULL,args2,args1));
+    args1.push_back(NULL);
+    execvp(cmd,(char * const*)args1.data());
 
     _exit(errno);
   }
@@ -342,156 +293,113 @@ run(const char *cmd,const char *dir,bool drop,std::vector <const char *> args1)
 }
 
 static void
-mount_directory(FW32_DIR *src)
+mount_directory(const FW32_DIR& src)
 {
   char dst[PATH_MAX];
 
-  assert(src);
-
-  snprintf(dst,sizeof dst,"%s%s",FW32_ROOT,src->dir);
+  snprintf(dst,sizeof dst,"%s%s",FW32_ROOT,src.dir);
 
   if(ismounted(dst))
     return;
 
   mkdir_parents(dst);
 
-  if(mount(src->dir,dst,"",MS_BIND,""))
+  if(mount(src.dir,dst,"",MS_BIND,""))
     error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 
-  if(src->ro)
-    if(mount(src->dir,dst,"",MS_BIND | MS_RDONLY | MS_REMOUNT,""))
+  if(src.ro)
+    if(mount(src.dir,dst,"",MS_BIND | MS_RDONLY | MS_REMOUNT,""))
       error("Failed to mount directory: %s: %s\n",dst,strerror(errno));
 }
 
 static void
-umount_directory(FW32_DIR *path)
+umount_directory(const char *path)
 {
-  assert(path);
 
-  if(umount2(path->dir,UMOUNT_NOFOLLOW) && errno != EINVAL && errno != ENOENT)
-    error("Failed to umount directory: %s: %s\n",path->dir,strerror(errno));
+  if(umount2(path,UMOUNT_NOFOLLOW) && errno != EINVAL && errno != ENOENT)
+    error("Failed to umount directory: %s: %s\n",path,strerror(errno));
 }
 
 static void
 mount_all(void)
 {
-  FW32_DIR *p;
-
-  p = FW32_DIRS_ALL;
-
-  while(p->dir)
-    mount_directory(p++);
+  std::sort(FW32_DIRS_ALL.begin(), FW32_DIRS_ALL.end(), hasLessSeparators);
+  for(const auto& pdir:FW32_DIRS_ALL) {
+    mount_directory(pdir);
+  }
 }
 
 static void
 umount_all(void)
 {
   char line[LINE_MAX];
-  char *p, *s, *e;
-  size_t n;
-  FILE *in, *out;
-  FW32_DIR d;
+  char *s;
+  FILE *in;
 
   in = fopen("/proc/mounts","rb");
 
   if(!in)
     error("Cannot open /proc/mounts for reading.\n");
 
-  out = open_memstream(&p,&n);
-
-  if(!out)
-    error("Failed to open a memory stream.\n");
+  std::vector <const char *> umountDirs;
 
   while(fgets(line,sizeof line,in))
   {
-    s = strchr(line,' ');
-
-    if(!s)
-      continue;
-
-    e = strchr(++s,' ');
-
-    if(!e)
-      continue;
-
-    *e = 0;
-
+    s = strtok(line, " ");
+    s = strtok(NULL, " ");
     if(!strncmp(s,FW32_ROOT,strlen(FW32_ROOT)))
     {
       char *ptr = strstr(s,"\\040(deleted)");
-      if(ptr)
-        *ptr = 0;
-      if(fprintf(out,"%s\n",s) < 0 || fflush(out))
-        error("Failed to write to memory stream.\n");
+      if(!ptr) {
+        char * sCpy = new char[strlen(s)+1];
+        strncpy(sCpy,s,strlen(s)+1);
+        umountDirs.push_back(sCpy);
+      }
     }
   }
 
   fclose(in);
 
-  fclose(out);
-
-  s = p;
-
-  while(true)
+  std::sort(umountDirs.begin(),umountDirs.end(),hasMoreSeparators);
+  for(const auto& pDir:umountDirs)
   {
-    e = strchr(s,'\n');
-
-    if(!e)
-      break;
-
-    *e++ = 0;
-
-    d.dir = s;
-
-    d.ro = false;
-
-    umount_directory(&d);
-
-    s = e;
+    umount_directory(pDir);
   }
-
-  free(p);
 }
 
 static void
 mount_base(void)
 {
-  FW32_DIR *p;
-
-  p = FW32_DIRS_BASE;
-
-  while(p->dir)
-    mount_directory(p++);
+  std::sort(FW32_DIRS_BASE.begin(), FW32_DIRS_BASE.end(), hasLessSeparators);
+  for(const auto& pdir:FW32_DIRS_BASE) {
+    mount_directory(pdir);
+  }
 }
 
 static void
-pacman_g2(const char **args1)
+pacman_g2(std::vector<const char *> args1)
 {
   pid_t id;
   int status;
-  FW32_DIR cache = { "/var/cache/pacman-g2", false };
-
-  assert(args1);
+  const FW32_DIR cache = { "/var/cache/pacman-g2", false };
 
   umount_all();
 
-  mount_directory(&cache);
+  mount_directory(cache);
 
   id = fork();
 
   if(!id)
   {
-    const char *args2[] =
-    {
-      "--noconfirm",
-      "--root",
-      FW32_ROOT,
-      "--config",
-      FW32_CONFIG,
-      0
-    };
+    args1.push_back("--noconfirm");
+    args1.push_back("--root");
+    args1.push_back(FW32_ROOT);
+    args1.push_back("--config");
+    args1.push_back(FW32_CONFIG);
 
-    execv("/usr/bin/pacman-g2",(char * const*)args_merge("/usr/bin/pacman-g2",args2,args1));
+    args1.insert(args1.begin(),"/usr/bin/pacman-g2");
+    args1.push_back(NULL);
+    execv("/usr/bin/pacman-g2",(char * const*)args1.data());
 
     _exit(EXIT_FAILURE);
   }
@@ -551,27 +459,20 @@ static void
 fw32_create(void)
 {
   struct stat st;
-  FW32_DIR *p;
   char path[PATH_MAX];
-  const char *args[] =
-  {
-    "-Sy",
-    0
-  };
+  std::vector<const char *> args;
+  args.push_back("-Sy");
 
   if(!stat(FW32_ROOT,&st))
     error("%s appears to already exist.\n",FW32_ROOT);
 
-  p = FW32_DIRS_ALL;
-
-  while(p->dir)
-  {
-    snprintf(path,sizeof path,"%s%s",FW32_ROOT,(p++)->dir);
-
+  for(const auto& pdir:FW32_DIRS_ALL) {
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,pdir.dir);
     mkdir_parents(path);
   }
 
-  pacman_g2(args_merge(NULL,args,FW32_DEF_PKGS));
+  args.insert(args.end(),FW32_DEF_PKGS.begin(),FW32_DEF_PKGS.end());
+  pacman_g2(args);
 }
 
 static void
@@ -593,65 +494,36 @@ static void
 fw32_update(void)
 {
   struct stat st;
-  FW32_DIR *p;
   char path[PATH_MAX];
-  const char *args[] =
-  {
-    "-Syf",
-    0
-  };
+  std::vector<const char *> args { "-Syf" };
 
   if(stat(FW32_ROOT,&st))
     error("%s does not exist.\n",FW32_ROOT);
 
-  p = FW32_DIRS_ALL;
-
-  while(p->dir)
-  {
-    snprintf(path,sizeof path,"%s%s",FW32_ROOT,(p++)->dir);
-
+  for(const auto& pdir:FW32_DIRS_ALL) {
+    snprintf(path,sizeof path,"%s%s",FW32_ROOT,pdir.dir);
     mkdir_parents(path);
   }
 
-  pacman_g2(args_merge(NULL,args,FW32_DEF_PKGS));
+  args.insert(args.end(),FW32_DEF_PKGS.begin(),FW32_DEF_PKGS.end());
+  pacman_g2(args);
 }
 
 static void
 fw32_upgrade(void)
 {
   struct stat st;
-  const char *args1[] =
-  {
-    "-Syuf",
-    0
-  };
-  const char *args2[] =
-  {
-    "update",
-    0
-  };
-  const char *args3[] =
-  {
-    "upgrade",
-    0
-  };
-  const char *args4[] =
-  {
-    "--force",
-    "--system-only",
-    0
-  };
 
-  pacman_g2(args1);
+  pacman_g2({"-Syuf"});
 
   if(!stat("/var/fst/current",&st) || !stat("/var/fst/stable",&st))
   {
-    repoman(args2);
+      repoman({"update"});
 
-    repoman(args3);
+      repoman({"upgrade"});
   }
 
-  run("/usr/bin/fc-cache","/",false,args4);
+  run("/usr/bin/fc-cache","/",false,   { "--force", "--system-only"});
 }
 
 static void
@@ -664,7 +536,7 @@ fw32_merge(std::vector<const char*> args1)
 }
 
 static void
-fw32_run(int i,const char **args1)
+fw32_run(int i,std::vector<const char*> args1)
 {
   char cwd[PATH_MAX], path[PATH_MAX], *dir;
   struct passwd *pwd;
@@ -687,55 +559,43 @@ fw32_run(int i,const char **args1)
   if(i < 1)
     run(pwd->pw_shell,dir,true,args1);
   else
-    run(args1[0],dir,true,args1+1);
+  {
+    args1.erase(args1.begin());
+    run(args1[0],dir,true,args1);
+  }
 }
 
 static void
 fw32_clean(void)
 {
-  const char *args[] =
-  {
-    "-Sc",
-    0
-  };
-
-  pacman_g2(args);
+  pacman_g2({ "-Sc" });
 }
 
 static void
-fw32_install(const char **args1)
+fw32_install(std::vector<const char *> args1)
 {
-  const char *args2[] =
-  {
-    "-Syf",
-    0
-  };
+  std::vector<const char *> args2 { "-Syf" };
 
-  pacman_g2(args_merge(NULL,args2,args1));
+  args2.insert(args2.begin(),args1.begin(),args1.end());
+  pacman_g2(args2);
 }
 
 static void
-fw32_install_package(const char **args1)
+fw32_install_package(std::vector<const char *> args1)
 {
-  const char *args2[] =
-  {
-    "-Uf",
-    0
-  };
+  std::vector<const char *> args2 { "-Uf" };
 
-  pacman_g2(args_merge(NULL,args2,args1));
+  args2.insert(args2.begin(),args1.begin(),args1.end());
+  pacman_g2(args2);
 }
 
 static void
-fw32_remove(const char **args1)
+fw32_remove(std::vector<const char *> args1)
 {
-  const char *args2[] =
-  {
-    "-Rsc",
-    0
-  };
+  std::vector<const char *> args2 { "-Rsc" };
 
-  pacman_g2(args_merge(0,args2,args1));
+  args2.insert(args2.begin(),args1.begin(),args1.end());
+  pacman_g2(args2);
 }
 
 static void
