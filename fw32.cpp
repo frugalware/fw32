@@ -364,6 +364,7 @@ umount_all(void)
   for(const auto& pDir:umountDirs)
   {
     umount_directory(pDir);
+    delete(pDir);
   }
 }
 
