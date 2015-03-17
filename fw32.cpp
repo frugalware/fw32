@@ -560,8 +560,9 @@ fw32_run(int i,std::vector<const char*> args1)
     run(pwd->pw_shell,dir,true,args1);
   else
   {
+    const char * cmd = args1[0];
     args1.erase(args1.begin());
-    run(args1[0],dir,true,args1);
+    run(cmd,dir,true,args1);
   }
 }
 
