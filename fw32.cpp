@@ -58,6 +58,7 @@ static std::vector<FW32_DIR> FW32_DIRS_ALL {
   { "/usr/share/fonts",      true },
   { "/usr/share/themes",     true },
   { "/var/cache/pacman-g2", false },
+  { "/var/run",             false },
   { "/var/fst",             false },
   { "/media",               false },
   { "/mnt",                 false },
