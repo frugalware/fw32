@@ -640,6 +640,13 @@ main(int argc,const char **argv)
   if(personality(PER_LINUX32))
     error("Failed to enable 32 bit emulation.\n");
 
+  //needed for pulseaudio and maybe others
+  if(const char* env_xdg_rtm = std::getenv("XDG_RUNTIME_DIR"))  
+  {
+    FW32_DIR xdg_rtm{env_xdg_rtm, false};
+    FW32_DIRS_ALL.push_back(xdg_rtm);
+  }
+  
   if(is_cmd(cmd,"fw32-create"))
     fw32_create();
   else if(is_cmd(cmd,"fw32-update"))
